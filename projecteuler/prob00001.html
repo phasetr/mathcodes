@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>prob 1</title>
+    <script>
+     document.addEventListener("DOMContentLoaded",function(eve){
+         var n = 1000;
+         var answer = 1;
+         for (i=1;i<n;i++) {
+             if (i % 3 === 0 || i % 5 === 0) {answer = answer + i;}
+         }
+         document.body.insertAdjacentHTML("beforeend", "<p>" + answer + "</p>");
+     },false);
+    </script>
+  </head>
+  <body>
+    <h1>Result</h1>
+  </body>
+</html>
