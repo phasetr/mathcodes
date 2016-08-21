@@ -50,6 +50,21 @@ $ python --version
 Python3 に対応次第, こちらも追記したい.
 
 ## Jupyter 起動
+### シンプルに
+
+本来はコマンドプロンプトやターミナル (いわゆる「黒いやつ」) で起動しないといけない.
+しかしこのハードルは高いだろうという気もする.
+そこでダブルクリックすれば自動で起動できるファイルを作った.
+
+- jupyter/runjupyter.bat
+- jupyter/runjupyter.command
+
+Windows の方は bat ファイルを,
+Mac の方は command ファイルを使うこと.
+これを適当なフォルダに置いてダブルクリックで実行すれば,
+そのフォルダで jupyter が起動する.
+
+### 詳細
 
 jupyter/fundamental.ipynb にも書いておいたが,
 そもそも起動できないのに確認しようもない.
