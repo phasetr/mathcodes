@@ -3,7 +3,10 @@ I collected my scientific codes, especially math and physics.
 # python
 
 Jupyter がすごいのでそれを使ったコードも書いてみたい.
-インストールについての注意を書いておく.
+[ここ](https://try.jupyter.org/)に行けばネット越しに Jupyter が使えるので,
+インストールしたりコマンド叩いたりがつらい人はとりあえずこちらで実験してみよう.
+
+以下, インストールについての注意を書いておく.
 2016-08 時点では[Qiita のこの記事](http://qiita.com/y__sama/items/5b62d31cb7e6ed50f02c)が参考になる.
 
 詳しくはそちらを見てもらうことにして,
