@@ -1,0 +1,169 @@
+strict graph graph_name {
+    layout=fdp
+    graph [
+           charset = "UTF-8",
+           fontname="Migu 1M",
+           label = "数学と物理のいろいろな関係",
+           labelloc = "t",
+           labeljust = "c",
+           bgcolor = "#343434",
+           fontcolor = white,
+           fontsize = 18,
+           style = "filled",
+           rankdir = TB,
+           margin = 0.2,
+           splines = spline,
+           ranksep = 1.0,
+           nodesep = 0.9
+           ];
+
+    node [
+          colorscheme = "rdylgn11"
+          style = "solid,filled",
+          fontsize = 16,
+          fontcolor = 6,
+          fontname = "Migu 1M",
+          color = 7,
+          fillcolor = 11,
+          ];
+
+    edge [
+          style = solid,
+          fontsize = 14,
+          fontcolor = white,
+          fontname = "Migu 1M",
+          color = white,
+          labelfloat = true,
+          labeldistance = 2.5,
+          labelangle = 70
+          ];
+
+    Algebra [label="代数学"]
+    AlgebraicAnalysis [label="代数解析"]
+    AlgebraicGeometry [label="代数幾何"]
+    AlgebraicTopology [label="代数トポロジー"]
+    GaloisTheory [label="ガロア理論"]
+    Analysis [label="解析学"]
+    CategoryTheory [label="圏論"]
+    RingTheory [label="環論"]
+    DifferentialGeometry [label="微分幾何"]
+    DifferentialTopology [label="微分位相幾何"]
+    DynamicalSystem [label="力学系"]
+    FieldTheory [label="体論"]
+    FunctionTheory [label="関数論"]
+    FunctionalAnalysis [label="関数解析"]
+    Geometry [label="幾何学"]
+    GroupTheory [label="群論"]
+    IntegralGeometry [label="積分幾何"]
+    Logic [label="論理学"]
+    ManifoldTheory [label="多様体論"]
+    OperatorAlgebra [label="作用素環"]
+    OperatorTheory [label="作用素論"]
+    DifferentialEquations [label="偏微分方程式論"]
+    SchemeTheory [label="スキーム"]
+    SetTheory [label="集合論"]
+    SheafTheory [label="層の理論"]
+    TopologicalSpaceTheory [label="位相空間論"]
+    Topology [label="トポロジー"]
+    HomologicalAlgebra [label="ホモロジー代数"]
+    RepresentationTheory [label="表現論"]
+    LieGroupTheory [label="リー群論"]
+    HomotopyTheory [label="ホモトピー論"]
+    ComplexGeometry [label="複素幾何"]
+    ComplexManifoldThepry [label="複素多様体論"]
+    FourierAnalysis [label="フーリエ解析"]
+    HarmonicAnalysis [label="調和解析"]
+    RealAnalysis [label="実解析"]
+    NumberTheory [label="数論"]
+    AnalyticNumberTheory [label="解析数論"]
+    Probability [label="確率論"]
+    StochasticAnalysis [label="確率解析"]
+    ArithmeticGeometry [label="数論幾何"]
+    LebesgueIntegralTheory [label="ルベーグ積分論"]
+    LinearAlgebra [label="線型代数"]
+
+    physics [label="物理"]
+
+    Algebra -- Logic
+    AlgebraicAnalysis -- CategoryTheory
+    AlgebraicAnalysis -- DifferentialEquations
+    AlgebraicAnalysis -- FunctionTheory
+    AlgebraicAnalysis -- HomologicalAlgebra
+    AlgebraicAnalysis -- LieGroupTheory
+    AlgebraicAnalysis -- RepresentationTheory
+    AlgebraicAnalysis -- RingTheory
+    AlgebraicAnalysis -- RingTheory
+    AlgebraicAnalysis -- SheafTheory
+    AlgebraicGeometry -- ArithmeticGeometry
+    AlgebraicGeometry -- CategoryTheory
+    AlgebraicGeometry -- ComplexGeometry
+    AlgebraicGeometry -- ComplexManifoldThepry
+    AlgebraicGeometry -- FieldTheory
+    AlgebraicGeometry -- Geometry
+    AlgebraicGeometry -- ManifoldTheory
+    AlgebraicGeometry -- RingTheory
+    AlgebraicGeometry -- SchemeTheory
+    AlgebraicGeometry -- SheafTheory
+    AlgebraicTopology -- CategoryTheory
+    AlgebraicTopology -- DifferentialEquations
+    AlgebraicTopology -- Geometry
+    AlgebraicTopology -- HomotopyTheory
+    AlgebraicTopology -- ManifoldTheory
+    AlgebraicTopology -- Topology
+    Analysis -- FunctionTheory
+    Analysis -- FunctionalAnalysis
+    Analysis -- TopologicalSpaceTheory
+    ArithmeticGeometry -- CategoryTheory
+    ArithmeticGeometry -- SheafTheory
+    CategoryTheory -- SchemeTheory
+    CategoryTheory -- SetTheory
+    CategoryTheory -- SheafTheory
+    ComplexGeometry -- ComplexManifoldThepry
+    ComplexGeometry -- FunctionTheory
+    ComplexManifoldThepry -- DifferentialEquations
+    ComplexManifoldThepry -- SheafTheory
+    DifferentialEquations -- DynamicalSystem
+    DifferentialGeometry -- DifferentialEquations
+    DifferentialGeometry -- FunctionTheory
+    DifferentialGeometry -- IntegralGeometry
+    DifferentialGeometry -- ManifoldTheory
+    DifferentialTopology -- DifferentialEquations
+    DifferentialTopology -- Geometry
+    DifferentialTopology -- ManifoldTheory
+    DynamicalSystem -- OperatorAlgebra
+    DynamicalSystem -- Probability
+    DynamicalSystem -- Topology
+    FunctionTheory -- OperatorAlgebra
+    FunctionTheory -- OperatorTheory
+    FunctionalAnalysis -- DifferentialEquations
+    FunctionalAnalysis -- LinearAlgebra
+    FunctionalAnalysis -- OperatorAlgebra
+    FunctionalAnalysis -- OperatorTheory
+    FunctionalAnalysis -- RingTheory
+    Geometry -- ManifoldTheory
+    Geometry -- TopologicalSpaceTheory
+    Geometry -- TopologicalSpaceTheory
+    GroupTheory -- AlgebraicTopology
+    GroupTheory -- CategoryTheory
+    GroupTheory -- DifferentialGeometry
+    GroupTheory -- FieldTheory
+    GroupTheory -- FunctionalAnalysis
+    GroupTheory -- LinearAlgebra
+    GroupTheory -- ManifoldTheory
+    GroupTheory -- RepresentationTheory
+    HomotopyTheory -- Topology
+    LinearAlgebra -- LieGroupTheory
+    LinearAlgebra -- OperatorAlgebra
+    Logic -- CategoryTheory
+    Logic -- FunctionalAnalysis
+    Logic -- OperatorAlgebra
+    Logic -- SetTheory
+    Logic -- SheafTheory
+    ManifoldTheory -- DifferentialEquations
+    OperatorTheory -- DifferentialEquations
+    OperatorTheory -- OperatorAlgebra
+    OperatorTheory -- Probability
+    RingTheory -- OperatorAlgebra
+    SchemeTheory -- SheafTheory
+    SetTheory -- SheafTheory
+}
