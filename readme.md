@@ -1,5 +1,7 @@
 I collected my scientific codes, especially math and physics.
 
+- [GitHub URL](https://github.com/phasetr/mathcodes)
+
 # python
 
 Jupyter がすごいのでそれを使ったコードも書いてみたい.
