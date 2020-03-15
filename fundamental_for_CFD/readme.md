@@ -1,8 +1,9 @@
-* 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
-** 書籍情報
+# 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
+## 書籍情報
 - [コロナ社のサイト](https://www.coronasha.co.jp/np/isbn/9784339046649/)
 - [Amazon へのリンク](https://www.amazon.co.jp/dp/4339046647)
-** このリポジトリ (ディレクトリ) に関する注意
+
+## このリポジトリ (ディレクトリ) に関する注意
 [Amazon のレビュー](https://www.amazon.co.jp/gp/customer-reviews/R33RHW7EY4FF24/ref=cm_cr_dp_d_rvw_ttl?ie=UTF8&ASIN=4339046647)にも書いたのだが,
 オリジナルの C のコードがあまりにひどいのです.
 そもそも書名に「C++」とあるから C++ の本だと思ったのですあ,
@@ -18,7 +19,8 @@
 まずは使い慣れている Python で書くことにし,
 そのあと, 勉強も兼ねて Rust で書き直す予定です.
 数値計算の習作用なので, コードの構造などにはあまり気を使わない予定です.
-** YouTube へのリンク
+
+## YouTube へのリンク
 どのプログラムでどんな動画ができるのか,
 いちいち動かさないとわからないのでは面倒なので,
 作った動画ファイルを YouTube にアップすることにしています.
@@ -28,13 +30,16 @@
 次のリストは私が作った各種数値計算系の動画をまとめたリスト.
 
 - [YouTube: 数学・物理・プログラミング](https://www.youtube.com/watch?v=8RIrq4j8Qg0&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=1)
-** YouTube 投稿用メモ
-*** 追加すべきリスト
+
+## YouTube 投稿用メモ
+### 追加すべきリスト
 - [YouTube: 数学・物理・プログラミング](https://www.youtube.com/watch?v=8RIrq4j8Qg0&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=1)
 - [数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析](https://www.youtube.com/playlist?list=PLSBzltjFopragPoCA2WAfkYzJkoNq-4Ms)
-*** タイトル用サンプル
+
+### タイトル用サンプル
 Python 有限体積法 1 次元の線型移流方程式 アニメーションサンプル 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
-*** 動画コメント用サンプル
+
+### 動画コメント用サンプル
 「数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析」を Python で書き直し,
 その結果を同じく Python で動画にしたアニメーションサンプルです.
 コードは Python 版を GitHub に置いてあるので興味があればどうぞ.
