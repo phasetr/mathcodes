@@ -6,7 +6,7 @@
 ## このリポジトリ (ディレクトリ) に関する注意
 [Amazon のレビュー](https://www.amazon.co.jp/gp/customer-reviews/R33RHW7EY4FF24/ref=cm_cr_dp_d_rvw_ttl?ie=UTF8&ASIN=4339046647)にも書いたのだが,
 オリジナルの C のコードがあまりにひどいのです.
-そもそも書名に「C++」とあるから C++ の本だと思ったのですあ,
+そもそも書名に「C++」とあるから C++ の本だと思ったのですが,
 実際には C のコードでした.
 描画部分も, 太古のアニメーションが書けなかった頃の Gnuplot の流儀で書かれていて,
 計算しながら Gnuplot を起動して計算しています.
@@ -37,7 +37,8 @@
 - [数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析](https://www.youtube.com/playlist?list=PLSBzltjFopragPoCA2WAfkYzJkoNq-4Ms)
 
 ### タイトル用サンプル
-Python 有限体積法 1 次元の線型移流方程式 アニメーションサンプル 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
+- Python 有限体積法 1 次元の線型移流方程式 アニメーションサンプル 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
+- Rust 有限体積法 1 次元の線型移流方程式 アニメーションサンプル 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
 
 ### 動画コメント用サンプル
 「数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析」を Python で書き直し,
