@@ -37,15 +37,15 @@
 - [数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析](https://www.youtube.com/playlist?list=PLSBzltjFopragPoCA2WAfkYzJkoNq-4Ms)
 
 ### タイトル用サンプル
-- Python 有限体積法 1 次元の線型移流方程式 アニメーションサンプル 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
 - Rust 有限体積法 1 次元の線型移流方程式 アニメーションサンプル 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
+- Python 有限体積法 1 次元の線型移流方程式 アニメーションサンプル 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
 
 ### 動画コメント用サンプル
-「数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析」を Python で書き直し,
-その結果を同じく Python で動画にしたアニメーションサンプルです.
-コードは Python 版を GitHub に置いてあるので興味があればどうぞ.
+「数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析」を Rust/Python で書き直し,
+その結果を Python で動画にしたアニメーションサンプルです.
+コードは Rust/Python 版を GitHub に置いてあるので興味があればどうぞ.
 
-- https://github.com/phasetr/mathcodes/fundamental_for_CFD
+- https://github.com/phasetr/mathcodes/fundamental_for_CFD/
 
 対応するのは次のコードです.
 
