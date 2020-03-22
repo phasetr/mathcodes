@@ -1,0 +1,10 @@
+init: sin # sin か square
+reconstruction: LaxWendorff # PC, LaxWendorff, BeamWarming, Fromm, TVD
+limiter: minmod # minmod, superbee, vanLeer, vanAlbada
+riemann: Roe # Roe
+i_max: 100
+x_left: -1.0
+x_right: 1.0
+tstop: 0.2 # 動画を作るときは 2.0 くらいで長めに取る
+a: 1.0
+alpha_12: 1.0

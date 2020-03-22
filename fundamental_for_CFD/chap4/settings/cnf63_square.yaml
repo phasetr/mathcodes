@@ -1,0 +1,10 @@
+init: square
+reconstruction: TVD
+limiter: superbee
+riemann: Roe
+i_max: 100
+x_left: -1.0
+x_right: 1.0
+tstop: 2.0
+a: 1.0
+alpha_12: 1.0
