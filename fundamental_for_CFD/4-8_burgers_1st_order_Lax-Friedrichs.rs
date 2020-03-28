@@ -1,6 +1,8 @@
-// cargo-deps: chrono
+// cargo-deps: chrono, gnuplot
 extern crate chrono;
+extern crate gnuplot;
 use chrono::Local;
+use gnuplot::*;
 use std::env;
 use std::error;
 use std::fs;
@@ -8,6 +10,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufWriter;
 use std::process;
+use std::process::Command;
 
 const PI: f64 = std::f64::consts::PI;
 
@@ -34,11 +37,17 @@ struct Config {
     pub x_left: f64,
     pub x_right: f64,
     pub tstop: f64,
+    pub nstop: i64,
     pub a: f64,
     pub alpha_12: f64,
     pub dx: f64,
     pub dt: f64,
     pub dir_name: String,
+    pub title: String,
+    pub specify_png: String,
+    pub movie_name: String,
+    pub graph_ylim_min: f64,
+    pub graph_ylim_max: f64,
 }
 
 impl Config {
@@ -53,13 +62,18 @@ impl Config {
         let x_left = -1.0;
         let x_right = 1.0;
         let dx = (x_right - x_left) / (i_max as f64);
+        let dt = 0.2 * dx;
+        let tstop = 2.0;
+        let nstop = (tstop / dt) as i64;
 
-        let dir_name = Local::now()
-            .format(&format!(
-                "workspace/%Y%m%d-%H%M%S_4-8_burgers_1st_order_Lax-Friedrichs_{}",
-                &init_string,
-            ))
+        let prog_name = "4-8-burgers-1st-order-Lax-Friedrichs";
+        let title = Local::now()
+            .format(&format!("%Y%m%d-%H%M%S-{}-{}", &prog_name, &init_string))
             .to_string();
+        let dir_name = format!("workspace/{}", &title);
+
+        let specify_png = format!("{}/img.%08d.png", &dir_name);
+        let movie_name = format!("{}.tmp.mp4", &title);
 
         Ok(Config {
             init: init,
@@ -68,44 +82,149 @@ impl Config {
             c: 2.0 * PI * ((i_max as f64) + 3.0) / (i_max as f64),
             x_left: x_left,
             x_right: x_right,
-            tstop: 2.0,
+            tstop: tstop,
+            nstop: nstop,
             a: 1.0,
             alpha_12: 1.0,
             dx: dx,
-            dt: 0.2 * dx,
+            dt: dt,
             dir_name: dir_name,
+            title: title,
+            specify_png: specify_png,
+            movie_name: movie_name,
+            graph_ylim_min: 0.0,
+            graph_ylim_max: 1.1,
         })
     }
 }
 
-fn write_file(
-    cnf: &Config,
-    n: &i64,
-    xs: &[f64],
-    us: &[f64],
-    ues: &[f64],
-    uls: &[f64],
-    urs: &[f64],
-    fs: &[f64],
-) -> Result<(), Box<dyn error::Error>> {
-    let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &n);
-    let file = File::create(file_name).unwrap();
-    let mut w = BufWriter::new(file);
-    write!(w, "xs,us,ues,uls,urs,fs\n").unwrap();
-    for i in 0..cnf.node {
-        let s = format!(
-            "{},{},{},{},{},{}\n",
-            xs[i], us[i], ues[i], urs[i], uls[i], fs[i]
-        );
-        // unwrapを呼んで書き込みエラーを検知
-        write!(w, "{}", s).unwrap();
-    }
-    // flushを呼ぶことで書き込みエラーを全て拾える
-    w.flush().unwrap();
-    Ok(())
+struct CalcData {
+    pub n: i64,
+    pub t: f64,
+    pub xs: Vec<f64>,
+    pub us: Vec<f64>,
+    pub ues: Vec<f64>,
+    pub uls: Vec<f64>,
+    pub urs: Vec<f64>,
+    pub fs: Vec<f64>,
 }
 
-fn exact(cnf: &Config, t: f64, xs: &Vec<f64>, ues: &Vec<f64>) -> Vec<f64> {
+impl CalcData {
+    pub fn new(cnf: &Config) -> CalcData {
+        let n: i64 = 0;
+        let t: f64 = 0.0;
+
+        let mut xs = vec![0.0; cnf.node];
+        xs[0] = cnf.x_left;
+        for i in 1..cnf.node {
+            xs[i] = xs[i - 1] + cnf.dx;
+        }
+
+        let mut us = vec![0.0; cnf.node];
+        let mut ues = vec![0.0; cnf.node];
+        match &cnf.init {
+            Init::Sin => {
+                for i in 0..cnf.node {
+                    us[i] = 0.5 * (1.1 + f64::sin(cnf.c * (xs[i] - cnf.a * t)));
+                    ues[i] = 0.5 * (1.1 + f64::sin(cnf.c * (ues[i] - cnf.a * t)));
+                }
+            }
+            Init::Square => {
+                us = vec![0.1; cnf.node];
+                ues = vec![0.1; cnf.node];
+                for i in ((cnf.node - 1) / 2 - 10)..((cnf.node - 1) / 2 + 10) {
+                    us[i] = 1.0;
+                    ues[i] = 1.0;
+                }
+            }
+        }
+
+        // exact
+        ues = exact(&cnf, &t, &xs, &ues);
+
+        let uls = vec![0.0; cnf.node];
+        let urs = vec![0.0; cnf.node];
+        let fs = vec![0.0; cnf.node];
+
+        CalcData {
+            n,
+            t,
+            xs,
+            us,
+            ues,
+            uls,
+            urs,
+            fs,
+        }
+    }
+
+    pub fn write_all(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
+        CalcData::write_csv(&cnf, &cdata)
+            .map_err(|err| println!("{:?}", err))
+            .ok();
+        CalcData::write_png(&cnf, &cdata)
+            .map_err(|err| println!("{:?}", err))
+            .ok();
+        Ok(())
+    }
+
+    pub fn write_csv(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
+        let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.n);
+        let file = File::create(file_name).unwrap();
+        let mut w = BufWriter::new(file);
+        write!(w, "xs,us,ues,uls,urs,fs\n").unwrap();
+        for i in 0..cnf.node {
+            let s = format!(
+                "{},{},{},{},{},{}\n",
+                &cdata.xs[i],
+                &cdata.us[i],
+                &cdata.ues[i],
+                &cdata.urs[i],
+                &cdata.uls[i],
+                &cdata.fs[i]
+            );
+            // unwrapを呼んで書き込みエラーを検知
+            write!(w, "{}", s).unwrap();
+        }
+        // flushを呼ぶことで書き込みエラーを全て拾える
+        w.flush().unwrap();
+        Ok(())
+    }
+
+    pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
+        let file_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.n);
+        let mut fg = Figure::new();
+        fg.axes2d()
+            .set_title(&cnf.title, &[])
+            .set_legend(Graph(1.0), Graph(1.0), &[], &[])
+            .set_y_range(Fix(cnf.graph_ylim_min), Fix(cnf.graph_ylim_max))
+            .set_x_label("x", &[])
+            .set_y_label("u", &[])
+            .lines(
+                &cdata.xs,
+                &cdata.us,
+                &[Caption("numerical"), LineWidth(2.5)],
+            )
+            .lines(&cdata.xs, &cdata.ues, &[Caption("exact"), LineWidth(2.5)]);
+        fg.save_to_png(file_name, 800, 800);
+
+        Ok(())
+    }
+
+    pub fn write_mp4(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
+        let options = ["-r", "10", "-i", &cnf.specify_png, &cnf.movie_name];
+
+        let run_ffmpeg = Command::new("ffmpeg")
+            .args(&options)
+            .output()
+            .expect("failed to start `ffmpeg`");
+        println!("{}", String::from_utf8_lossy(&run_ffmpeg.stdout));
+
+        Ok(())
+    }
+}
+
+fn exact(cnf: &Config, t: &f64, xs: &Vec<f64>, ues: &Vec<f64>) -> Vec<f64> {
     let mut ues_new = ues.clone();
     match &cnf.init {
         Init::Sin => {
@@ -160,76 +279,58 @@ fn main() {
         println!("! {:?}", why.kind());
     });
 
-    let mut n: i64 = 0;
-    let mut t: f64 = 0.0;
-
     // initc
-    let mut xs = vec![0.0; cnf.node];
-    xs[0] = cnf.x_left;
-    for i in 1..cnf.node {
-        xs[i] = xs[i - 1] + cnf.dx;
-    }
+    let mut cdata = CalcData::new(&cnf);
+    CalcData::write_csv(&cnf, &cdata)
+        .map_err(|err| println!("{:?}", err))
+        .ok();
+    CalcData::write_png(&cnf, &cdata)
+        .map_err(|err| println!("{:?}", err))
+        .ok();
 
-    let mut us = vec![0.0; cnf.node];
-    let mut ues = vec![0.0; cnf.node];
-    match &cnf.init {
-        Init::Sin => {
-            for i in 0..cnf.node {
-                us[i] = 0.5 * (1.1 + f64::sin(cnf.c * (xs[i] - cnf.a * t)));
-                ues[i] = 0.5 * (1.1 + f64::sin(cnf.c * (ues[i] - cnf.a * t)));
-            }
+    while cdata.t <= cnf.tstop {
+        cdata.n = cdata.n + 1;
+        cdata.t = cdata.t + cnf.dt;
+
+        if cdata.n % 10 == 0 {
+            println!("Now {}/{} times!", &cdata.n, &cnf.nstop);
         }
-        Init::Square => {
-            us = vec![0.1; cnf.node];
-            ues = vec![0.1; cnf.node];
-            for i in ((cnf.node - 1) / 2 - 10)..((cnf.node - 1) / 2 + 10) {
-                us[i] = 1.0;
-                ues[i] = 1.0;
-            }
-        }
-    }
-
-    // exact
-    ues = exact(&cnf, t, &xs, &ues);
-
-    let mut uls = vec![0.0; cnf.node];
-    let mut urs = vec![0.0; cnf.node];
-    let mut fs = vec![0.0; cnf.node];
-    write_file(&cnf, &n, &xs, &us, &ues, &uls, &urs, &fs);
-
-    while t <= cnf.tstop {
-        n = n + 1;
-        t = t + cnf.dt;
 
         // reconstruction_pc
         for i in 1..(cnf.node - 2) {
             // セル境界 (i+1/2) 左側の値
-            uls[i + 1] = us[i];
+            cdata.uls[i + 1] = cdata.us[i];
             // セル境界 (i+1/2) 右側の値
-            urs[i + 1] = us[i + 1];
+            cdata.urs[i + 1] = cdata.us[i + 1];
         }
 
         // riemann_llr
         for i in 2..(cnf.node - 1) {
-            fs[i] = 0.5 * (f_flux(uls[i]) + f_flux(urs[i]))
-                - 0.5 * f64::abs(cnf.alpha_12) * (urs[i] - uls[i]);
+            cdata.fs[i] = 0.5 * (f_flux(cdata.uls[i]) + f_flux(cdata.urs[i]))
+                - 0.5 * f64::abs(cnf.alpha_12) * (cdata.urs[i] - cdata.uls[i]);
         }
 
         // update
         for i in 2..(cnf.node - 2) {
-            us[i] = us[i] - cnf.dt / cnf.dx * (fs[i + 1] - fs[i]);
+            cdata.us[i] = cdata.us[i] - cnf.dt / cnf.dx * (cdata.fs[i + 1] - cdata.fs[i]);
         }
 
         // gc
-        us[0] = us[cnf.i_max - 3];
-        us[1] = us[cnf.i_max - 2];
-        us[cnf.i_max - 1] = us[2];
-        us[cnf.i_max] = us[3];
+        cdata.us[0] = cdata.us[cnf.i_max - 3];
+        cdata.us[1] = cdata.us[cnf.i_max - 2];
+        cdata.us[cnf.i_max - 1] = cdata.us[2];
+        cdata.us[cnf.i_max] = cdata.us[3];
 
         // exact
-        ues = exact(&cnf, t, &xs, &ues);
+        cdata.ues = exact(&cnf, &cdata.t, &cdata.xs, &cdata.ues);
 
-        write_file(&cnf, &n, &xs, &us, &ues, &uls, &urs, &fs);
+        CalcData::write_all(&cnf, &cdata)
+            .map_err(|err| println!("{:?}", err))
+            .ok();
     }
-    println!("1d_mp4.py を実行して動画ファイルを生成してください.");
+
+    CalcData::write_mp4(&cnf, &cdata)
+        .map_err(|err| println!("{:?}", err))
+        .ok();
+    println!("{} として結果を出力しています.", &cnf.movie_name);
 }
