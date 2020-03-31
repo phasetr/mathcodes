@@ -49,7 +49,7 @@
 
 対応するのは次のコードです.
 
-- 適宜埋める
+- https://github.com/phasetr/mathcodes/blob/master/fundamental_for_CFD/ ここを埋める
 
 これ以外に, 数学・物理・プログラミングに関する無料の通信講座を運営しています.
 もしあなたがご興味あるなら,
