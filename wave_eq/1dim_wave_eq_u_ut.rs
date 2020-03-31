@@ -1,6 +1,4 @@
 // cargo-deps: chrono, gnuplot
-// YouTube へのリンク:
-// 原点で時間に対する正弦波で波を駆動し, ディリクレ境界条件下で解く.
 extern crate chrono;
 extern crate gnuplot;
 use chrono::Local;
@@ -17,15 +15,16 @@ use std::process::Command;
 const PI: f64 = std::f64::consts::PI;
 
 struct Config {
-    pub c: f64,     // 光速 [m/s]
-    pub f: f64,     // 原点で駆動させる振動数
-    pub dx: f64,    // 空間散文間隔 [m]
-    pub dt: f64,    // 時間差分間隔 [s]
-    pub nx: usize,  // 計算点数
-    pub nt: i64,    // 計算ステップ数
-    pub m_pml: i64, // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
-    pub r_pml: f64, // 境界面において実現したい反射係数
-    pub n_pml: i64, // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
+    pub c: f64,           // 光速 [m/s]
+    pub f: f64,           // 原点で駆動させる振動数
+    pub dx: f64,          // 空間散文間隔 [m]
+    pub dt: f64,          // 時間差分間隔 [s]
+    pub nx: usize,        // 計算点数
+    pub nt: i64,          // 計算ステップ数
+    pub output_step: i64, // 出力ステップ数
+    pub m_pml: i64,       // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
+    pub r_pml: f64,       // 境界面において実現したい反射係数
+    pub n_pml: i64,       // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
     pub dir_name: String,
     pub title: String,
     pub specify_png: String,
@@ -39,9 +38,10 @@ impl Config {
         let c = 1.0;
         let f = 5.0;
         let dx = 0.01;
-        let dt = dx / c * 0.8;
+        let dt = dx / c;
         let nx = 200;
-        let nt = 500;
+        let nt = 250;
+        let output_step = 1;
 
         let prog_name = "1dim-wave-eq-u-ut";
         let title = Local::now()
@@ -59,6 +59,7 @@ impl Config {
             nt: nt,
             dx: dx,
             dt: dt,
+            output_step: output_step,
             m_pml: 3,
             r_pml: 1e-6,
             n_pml: 8,
@@ -75,6 +76,7 @@ impl Config {
 struct CalcData {
     pub n: i64,
     pub t: f64,
+    pub output_num: i64,
     pub sigma: Vec<f64>,
     pub x: Vec<f64>,
     pub u: Vec<f64>,  // 元の関数
@@ -85,6 +87,7 @@ impl CalcData {
     pub fn new(cnf: &Config) -> CalcData {
         let n: i64 = 0;
         let t: f64 = 0.0;
+        let output_num: i64 = 0;
         let sigma = vec![0.0; cnf.nx];
 
         let mut x = vec![0.0; cnf.nx];
@@ -98,6 +101,7 @@ impl CalcData {
         CalcData {
             n: n,
             t: t,
+            output_num: output_num,
             sigma: sigma,
             x: x,
             u: u,
@@ -116,7 +120,7 @@ impl CalcData {
     }
 
     pub fn write_csv(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
-        let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.n);
+        let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
         let file = File::create(file_name).unwrap();
         let mut w = BufWriter::new(file);
         write!(w, "x,u\n").unwrap();
@@ -131,7 +135,7 @@ impl CalcData {
     }
 
     pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
-        let file_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.n);
+        let file_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
         let mut fg = Figure::new();
         fg.axes2d()
             .set_title(&cnf.title, &[])
@@ -181,7 +185,7 @@ fn main() {
         .map_err(|err| println!("{:?}", err))
         .ok();
 
-    let alpha = cnf.dt / (2.0 * cnf.dx);
+    let alpha = cnf.dt / cnf.dx.powf(2.0);
 
     while cdata.n <= cnf.nt {
         println!("Now {}/{} times!", &cdata.n, &cnf.nt);
@@ -195,8 +199,8 @@ fn main() {
         cdata.u[cnf.nx / 2 - 1] = 0.5 * f64::sin(2.0 * PI * cnf.f * cdata.t);
 
         for i in 1..(cnf.nx - 2) {
-            unew[i] = cdata.u[i] + cnf.dt * cdata.ut[i];
             utnew[i] = cdata.ut[i] + alpha * (cdata.u[i - 1] - 2.0 * cdata.u[i] + cdata.u[i + 1]);
+            unew[i] = cdata.u[i] + cnf.dt * utnew[i];
         }
 
         // bc: ディリクレ境界条件
@@ -206,9 +210,12 @@ fn main() {
         cdata.u = unew.clone();
         cdata.ut = utnew.clone();
 
-        CalcData::write_all(&cnf, &cdata)
-            .map_err(|err| println!("{:?}", err))
-            .ok();
+        if cdata.n % cnf.output_step == 0 {
+            CalcData::write_all(&cnf, &cdata)
+                .map_err(|err| println!("{:?}", err))
+                .ok();
+            cdata.output_num += 1;
+        }
     }
 
     CalcData::write_mp4(&cnf)

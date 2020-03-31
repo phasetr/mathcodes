@@ -15,15 +15,16 @@ use std::process::Command;
 const PI: f64 = std::f64::consts::PI;
 
 struct Config {
-    pub c: f64,     // 光速 [m/s]
-    pub f: f64,     // 原点で駆動させる振動数
-    pub dx: f64,    // 空間散文間隔 [m]
-    pub dt: f64,    // 時間差分間隔 [s]
-    pub nx: usize,  // 計算点数
-    pub nt: i64,    // 計算ステップ数
-    pub m_pml: i64, // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
-    pub r_pml: f64, // 境界面において実現したい反射係数
-    pub n_pml: i64, // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
+    pub c: f64,           // 光速 [m/s]
+    pub f: f64,           // 原点で駆動させる振動数
+    pub dx: f64,          // 空間散文間隔 [m]
+    pub dt: f64,          // 時間差分間隔 [s]
+    pub nx: usize,        // 計算点数
+    pub nt: i64,          // 計算ステップ数
+    pub output_step: i64, // 出力ステップ数
+    pub m_pml: i64,       // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
+    pub r_pml: f64,       // 境界面において実現したい反射係数
+    pub n_pml: i64,       // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
     pub dir_name: String,
     pub title: String,
     pub specify_png: String,
@@ -33,13 +34,14 @@ struct Config {
 }
 
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
+    pub fn new() -> Result<Config, &'static str> {
         let c = 1.0;
         let f = 5.0;
         let dx = 0.01;
-        let dt = dx / c * 0.5;
+        let dt = dx / c;
         let nx = 200;
-        let nt = 500;
+        let nt = 250;
+        let output_step = 1;
 
         let prog_name = "1dim-wave-eq-only-u";
         let title = Local::now()
@@ -57,6 +59,7 @@ impl Config {
             nt: nt,
             dx: dx,
             dt: dt,
+            output_step: output_step,
             m_pml: 3,
             r_pml: 1e-6,
             n_pml: 8,
@@ -73,6 +76,7 @@ impl Config {
 struct CalcData {
     pub n: i64,
     pub t: f64,
+    pub output_num: i64,
     pub sigma: Vec<f64>,
     pub x: Vec<f64>,
     pub u: Vec<f64>,    // 元の関数
@@ -83,6 +87,7 @@ impl CalcData {
     pub fn new(cnf: &Config) -> CalcData {
         let n: i64 = 0;
         let t: f64 = 0.0;
+        let output_num: i64 = 0;
         let sigma = vec![0.0; cnf.nx];
 
         let mut x = vec![0.0; cnf.nx];
@@ -96,6 +101,7 @@ impl CalcData {
         CalcData {
             n: n,
             t: t,
+            output_num: output_num,
             sigma: sigma,
             x: x,
             u: u,
@@ -114,7 +120,7 @@ impl CalcData {
     }
 
     pub fn write_csv(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
-        let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.n);
+        let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
         let file = File::create(file_name).unwrap();
         let mut w = BufWriter::new(file);
         write!(w, "x,u\n").unwrap();
@@ -129,7 +135,7 @@ impl CalcData {
     }
 
     pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
-        let file_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.n);
+        let file_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
         let mut fg = Figure::new();
         fg.axes2d()
             .set_title(&cnf.title, &[])
@@ -138,12 +144,14 @@ impl CalcData {
             .set_x_label("x", &[])
             .set_y_label("u", &[])
             .lines(&cdata.x, &cdata.u, &[Caption("u"), LineWidth(2.5)]);
-        fg.save_to_png(file_name, 800, 800);
+        fg.save_to_png(file_name, 800, 800)
+            .map_err(|err| println!("{:?}", err))
+            .ok();
 
         Ok(())
     }
 
-    pub fn write_mp4(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
+    pub fn write_mp4(cnf: &Config) -> Result<(), Box<dyn error::Error>> {
         let options = ["-r", "10", "-i", &cnf.specify_png, &cnf.movie_name];
 
         let run_ffmpeg = Command::new("ffmpeg")
@@ -159,7 +167,7 @@ impl CalcData {
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let cnf = Config::new(&args).unwrap_or_else(|err| {
+    let cnf = Config::new().unwrap_or_else(|err| {
         println!("Problem parsing arguments: {}", err);
         process::exit(1);
     });
@@ -202,12 +210,15 @@ fn main() {
         cdata.uold = cdata.u.clone();
         cdata.u = unew.clone();
 
-        CalcData::write_all(&cnf, &cdata)
-            .map_err(|err| println!("{:?}", err))
-            .ok();
+        if cdata.n % cnf.output_step == 0 {
+            CalcData::write_all(&cnf, &cdata)
+                .map_err(|err| println!("{:?}", err))
+                .ok();
+            cdata.output_num += 1;
+        }
     }
 
-    CalcData::write_mp4(&cnf, &cdata)
+    CalcData::write_mp4(&cnf)
         .map_err(|err| println!("{:?}", err))
         .ok();
     println!("{} として結果を出力しています.", &cnf.movie_name);

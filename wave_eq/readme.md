@@ -29,11 +29,52 @@ u(t + \Delta t, x) =
 u_t = v, \quad v_t = u_{xx}.
 \end{align}
 
-これを次のように離散化した.
+[黒木さんからの指摘](https://twitter.com/genkuroki/status/1245037226284552199)を受け,
+次のように離散化する.
+
+まず大元の波動方程式を次のように離散化する.
 
 \begin{align}
-u(t + \Delta t, x) &=
-u(t, x) + v(t, x) * \Delta t, \\
-v(t + \Delta t, x) &=
-v(t, x) + \frac{u(t, x - \Delta x) - 2 u(t,x) + u(t, x + \Delta x)}{2 \Delta x} \Delta t.
+\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} &=
+\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}.
 \end{align}
+
+ここで $v(t,x)=\frac{u(t,x)-u(t-\text{\ensuremath{\Delta t,x)}}}{\Delta t}$ と書くことにすると,
+上の差分化は次のように書き直せる.
+
+\begin{align}
+\frac{v(t+\Delta t,x)-v(t,x)}{\Delta t} & =
+\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}},\\
+u(t,x) & =
+u(t-\Delta t,x)+v(t,x)\Delta t.
+\end{align}
+
+これをさらに次のように書き直し,
+最終的に次の離散化で計算する.
+
+\begin{align}
+v(t+\Delta t,x) &=
+v(t,x)+\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}}\Delta t,\\
+u(t+\Delta t,x) &=
+u(t,x)+v(t+\Delta t,x)\Delta t.
+\end{align}
+
+### まずい離散化メモ
+はじめに実装していたバージョン.
+記録のために残しておく.
+
+> これを次のように離散化した.
+>
+> \begin{align}
+> u(t + \Delta t, x) &=
+> u(t, x) + v(t, x) \Delta t, \\
+> v(t + \Delta t, x) &=
+> v(t, x) + \frac{u(t, x - \Delta x) - 2 u(t,x) + u(t, x + \Delta x)}{(\Delta x)^2} \Delta t.
+> \end{align}
+
+## TODO
+次のリンク先の Julia コードを実装する.
+
+- <https://twitter.com/genkuroki/status/1245073613973123072>
+
+Rust でもベクトル計算したいのだが, できる?
