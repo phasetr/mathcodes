@@ -1,5 +1,4 @@
 // cargo-deps: chrono, gnuplot
-// https://www.youtube.com/watch?v=spe1Yp2_vVI&feature=youtu.be
 extern crate chrono;
 extern crate gnuplot;
 use chrono::Local;
@@ -35,7 +34,6 @@ struct Config {
 
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        //let c = 2.99792458e8;
         let c = 1.0;
         let f = 5.0;
         let dx = 0.01;
@@ -192,7 +190,7 @@ fn main() {
         cdata.u[cnf.nx / 2 - 1] = 0.5 * f64::sin(2.0 * PI * cnf.f * cdata.t);
 
         for i in 1..(cnf.nx - 2) {
-            // http://www.yamamo10.jp/yamamoto/lecture/2004/5E/partial_diff/text_wave/html/node2.html
+            // readme 参照
             unew[i] = 2.0 * cdata.u[i] - cdata.uold[i]
                 + alpha * (cdata.u[i + 1] - 2.0 * cdata.u[i] + cdata.u[i - 1]);
         }
