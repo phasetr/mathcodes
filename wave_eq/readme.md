@@ -21,6 +21,8 @@ u(t + \Delta t, x) =
 \end{align}
 
 ## 1dim_wave_eq_u_ut.rs
+- [Youtube へのリンク](https://www.youtube.com/watch?v=ILb9vJI6uQg&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=88&t=0s)
+
 初期条件や波の駆動は `1dim_wave_eq_only_u.rs` と同じ設定にしている.
 2 階の常微分方程式でよくやるように, $u, v = u_t$ として,
 次の連立の偏微分方程式を解く形にしている.
@@ -72,6 +74,24 @@ u(t,x)+v(t+\Delta t,x)\Delta t.
 > v(t, x) + \frac{u(t, x - \Delta x) - 2 u(t,x) + u(t, x + \Delta x)}{(\Delta x)^2} \Delta t.
 > \end{align}
 
+## 1dim_wave_eq_pml_processing.rs
+- [Youtube へのリンク](https://www.youtube.com/watch?v=pwHatoXioR8&feature=youtu.be)
+
+[このページ](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)にある processing のコード,
+`processing/sketch_1dim_wave_eq_pml.pde` を直接移植したコード.
+左端で振動を駆動させていて,
+領域中央の `cnf.nx / 2` から吸収壁が始まる.
+
+PML は変則的な 1 階化を使う.
+これは `wave_eq.lyx` にまとめた.
+勘違いしないようにドキュメントをよく読んで注意すること.
+
+## 1dim_wave_eq_pml_right_wall.rs
+`1dim_wave_eq_pml_processing.rs` では吸収壁は領域中央からはじまっていたのを右端
+5 層に押し込めた.
+
+## 1dim_wave_eq_u_ut_pml.rs
+- [波動方程式の PML 参考](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)
 ## TODO
 次のリンク先の Julia コードを実装する.
 

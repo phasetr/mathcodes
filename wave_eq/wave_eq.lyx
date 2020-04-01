@@ -1,0 +1,552 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Section
+ふつうの波動方程式の離散化
+\end_layout
+
+\begin_layout Subsection
+\begin_inset Formula $u$
+\end_inset
+
+ だけで書く場合
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:waveeq003"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+面倒なので 1 次元で考える。もとの波動方程式は次のように離散化できる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} & =\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}.\label{eq:waveeq001}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これを整理すると次の式が得られる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u(t+\Delta t,x) & =2u(t,x)-u(t-\Delta t,x)\\
+ & \quad-\left(\frac{\Delta t}{\Delta x}\right)^{2}\left(u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)\right).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ここでのポイントは右辺第二項に 1 つ前の時間の 
+\begin_inset Formula $u$
+\end_inset
+
+、つまり 
+\begin_inset Formula $u(t-\Delta t,x)$
+\end_inset
+
+が入っていることで、1 つ前の時間のデータも持っておかなくてはならない。
+\end_layout
+
+\begin_layout Subsection
+1 階化
+\end_layout
+
+\begin_layout Standard
+2 階の常微分方程式、または正規形の常微分方程式でよくやるように、時間に関して 1 階の連立偏微分方程式にもできる。連続系では
+\begin_inset Formula $v=u_{t}$
+\end_inset
+
+という関数を定義して次の連立偏微分方程式を考えることに当たる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{gather}
+\begin{cases}
+u_{t} & =v,\\
+v_{t} & =u_{xx}
+\end{cases}\label{eq:waveeq002}
+\end{gather}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & =v,\\
+v_{t} & =u_{xx}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これの離散化を考えよう：きちんと考えないとおかしな離散化になってしまい、不安定化してしまう。
+\end_layout
+
+\begin_layout Standard
+ポイントはあくまで離散化方程式
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:waveeq001"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+を起点にして考えることにある。天下りだが、
+\begin_inset Formula $v(t,x)=\frac{u(t,x)-u(t-\text{\ensuremath{\Delta t,x)}}}{\Delta t}$
+\end_inset
+
+として方程式
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:waveeq001"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+の離散化に代入すると、次の連立方程式が得られる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\frac{v(t+\Delta t,x)-v(t,x)}{\Delta t} & =\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}},\\
+u(t,x) & =u(t-\Delta t,x)+v(t,x)\Delta t.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+整理すると次の2組の連立方程式が得られる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+v(t+\Delta t,x) & =v(t,x)+\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}}\Delta t,\\
+u(t+\Delta t,x) & =u(t,x)+v(t+\Delta t,x)\Delta t.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これのポイントは第二式で
+\begin_inset Formula $v(t+\Delta t,x)$
+\end_inset
+
+が出てくることで、方程式
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:waveeq002"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+を「そのまま」離散化すると、ここが
+\begin_inset Formula $v(t,x)$
+\end_inset
+
+になるだろう。これは
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:waveeq003"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+で議論した離散化とは一致しなくなる。それを承知しているならもちろん問題ないが、この離散化は計算が不安定化する。（フォン・ノイマンの安定性解析などからきちんと考え
+られるようだが、まだそこまできちんとチェックしていない。ハミルトン系のシンプレクティック数値積分法の一種とのこと。）計算の順序としても、先に
+\begin_inset Formula $v(t+\Delta t,x)$
+\end_inset
+
+を計算しなければいけない点が変わる。
+\end_layout
+
+\begin_layout Section
+PML
+\end_layout
+
+\begin_layout Subsection
+参考文献
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "Processingでシミュレーション～境界付近で波を消す"
+target "https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+特殊な 1 階化
+\end_layout
+
+\begin_layout Standard
+上で書いたのとは違う 1 階化を使うのがポイント。以下で詳しく説明する。
+\end_layout
+
+\begin_layout Subsubsection
+結論
+\end_layout
+
+\begin_layout Standard
+先に結論を書くと次のようになる。吸収係数 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ を空間座標
+\begin_inset Formula $x$
+\end_inset
+
+の関数として、次の方程式を考えるのが PML の方程式である。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & =v_{x}-\sigma u,\\
+v_{t} & =u_{x}-\sigma v.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+吸収係数 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ は吸収壁の中でだけ正の値を取り、それ以外では 0 の関数である。
+\end_layout
+
+\begin_layout Paragraph
+吸収壁の具体例
+\end_layout
+
+\begin_layout Standard
+区間 
+\begin_inset Formula $[0,l_{x}]$
+\end_inset
+
+ 上の波動方程式を考え、右端に吸収壁があるとしよう。特に 
+\begin_inset Formula $l_{a}$
+\end_inset
+
+ から吸収壁が始まるとすると、例えば次のように吸収関数 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ を定義すればいい。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\sigma(x) & =\begin{cases}
+0, & x\in[0,l_{a}],\\
+\gamma\left(\frac{x-l_{a}}{l_{x}-l_{a}}\right)^{m}, & x\in[l_{a},l_{x}].
+\end{cases}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+係数
+\begin_inset Formula $\gamma$
+\end_inset
+
+は調整項としてつけておいた：
+\begin_inset Formula $\gamma=1$
+\end_inset
+
+でもいい。この定義は吸収癖がないところでは 
+\begin_inset Formula $\sigma(x)=0$
+\end_inset
+
+ で、 
+\begin_inset Formula $\sigma(l_{a})=0,\sigma(l_{x})=1$
+\end_inset
+
+を満たし、かつ連続的に係数が立ち上がる関数のうち、シンプルな関数を取ってきたにすぎない。指数
+\begin_inset Formula $m$
+\end_inset
+
+は 2-3 を取ることが多いようだが、きちんと吸収してくれれば何でも構わない。
+\end_layout
+
+\begin_layout Subsubsection
+連続系の 1 階化
+\end_layout
+
+\begin_layout Standard
+まず普通の波動方程式を考えよう：
+\begin_inset Formula $u_{tt}=u_{xx}$
+\end_inset
+
+を次のように1階化する。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & =v_{x},\\
+v_{t} & =u_{x}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これは次のように考えればいい。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{tt} & =\partial_{t}\partial_{t}u=\partial_{t}\partial_{x}v=\partial_{x}\partial_{t}v=\partial_{x}u_{x}=u_{xx}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+結論の差分方程式
+\end_layout
+
+\begin_layout Standard
+結論から書くと、次のように離散化するとうまく連続系を離散化できる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & =v_{x}\Rightarrow\frac{u(t+\text{\ensuremath{\Delta t,x)-u(t,x)}}}{\Delta t}=\frac{v(t,x)-v(t,x-\Delta x)}{\Delta x},\\
+v_{t} & =u_{x}\Rightarrow\frac{v(t,x)-v(t-\Delta t,x)}{\Delta t}=\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+詳しくは次の節で確認することにして、ここではこれを認めて差分方程式を導くことにする。結果は次のようになる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u(t+\Delta t,x) & =u(t,x)+\frac{\Delta t}{\Delta x}(v(t,x)-v(t,-\Delta x),\\
+v(t+\Delta t,x) & =v(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x)\right).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+吸収用の項を追加した方程式は次の通り。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u(t+\Delta t,x) & =u(t,x)+\frac{\Delta t}{\Delta x}(v(t,x)-v(t,-\Delta x)-\Delta t\cdot\sigma(x)u(t,x),\\
+v(t+\Delta t,x) & =v(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x)\right)-\Delta t\cdot\sigma(x)v(t,x).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+差分方程式の正当化
+\end_layout
+
+\begin_layout Standard
+時間微分に関して
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:waveeq003"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+節と同じように考えよう：波動方程式の時間微分項
+\begin_inset Formula $u_{tt}$
+\end_inset
+
+は次のように離散化した。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} & .
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+この式にまず
+\begin_inset Formula $u_{t}=v_{x}$
+\end_inset
+
+から来る
+\begin_inset Formula $\frac{u(t+\text{\ensuremath{\Delta t,x)-u(t,x)}}}{\Delta t}=\frac{v(t,x)-v(t,x-\Delta x)}{\Delta x}$
+\end_inset
+
+を代入し、
+\begin_inset Formula $v_{t}=u_{x}$
+\end_inset
+
+の離散化を使って整理する。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} & =\frac{\frac{v(t,x)-v(t,x-\Delta x)}{\Delta x}-\frac{v(t-\Delta t,x)-v(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(\ensuremath{v_{t}=u_{x}\text{の\text{離\text{散\text{化}}}}})}\\
+ & =\frac{\frac{v(t,x)-v(t-\Delta t,x)}{\Delta x}-\frac{v(t,x-\Delta x)-v(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(単純な式変形)}\\
+ & =\frac{\frac{v(t,x)-v(t-\Delta t,x)}{\Delta t}-\frac{v(t,x-\Delta x)-v(t-\Delta t,x-\Delta x)}{\Delta t}}{\Delta x}\quad\text{(分母の\ensuremath{\Delta t\text{と\ensuremath{\Delta x}を交換)}}}\\
+ & =\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}\quad\text{\ensuremath{(v_{t}=u_{x}\text{の離散化を代入)}}}\\
+ & \Rightarrow u_{xx}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
