@@ -163,18 +163,6 @@ v_{t} & =u_{xx}
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\begin{align*}
-u_{t} & =v,\\
-v_{t} & =u_{xx}.
-\end{align*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 これの離散化を考えよう：きちんと考えないとおかしな離散化になってしまい、不安定化してしまう。
 \end_layout
 
@@ -263,12 +251,211 @@ noprefix "false"
 
 \end_inset
 
-で議論した離散化とは一致しなくなる。それを承知しているならもちろん問題ないが、この離散化は計算が不安定化する。（フォン・ノイマンの安定性解析などからきちんと考え
-られるようだが、まだそこまできちんとチェックしていない。ハミルトン系のシンプレクティック数値積分法の一種とのこと。）計算の順序としても、先に
+で議論した離散化とは一致しなくなる。それを承知しているならもちろん問題ないが、この離散化は計算が不安定化する。（ハミルトン系のシンプレクティック数値積分法の一種
+とのこと。）計算の順序としても、先に
 \begin_inset Formula $v(t+\Delta t,x)$
 \end_inset
 
 を計算しなければいけない点が変わる。
+\end_layout
+
+\begin_layout Subsection
+フォン・ノイマンの安定性解析
+\end_layout
+
+\begin_layout Standard
+空間 1 変数の波動方程式で調べる。時間ステップを 
+\begin_inset Formula $n$
+\end_inset
+
+、格子点を 
+\begin_inset Formula $j$
+\end_inset
+
+ で表すことにして波動方程式 
+\begin_inset Formula $u_{tt}=u_{xx}$
+\end_inset
+
+を 
+\begin_inset Formula $v=u_{t},v_{t}=u_{xx}$
+\end_inset
+
+と 1 階化して離散化する。方程式 
+\begin_inset Formula $v_{t}=u_{xx}$
+\end_inset
+
+は次のように離散化・整理される。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+v_{j}^{n+1} & =v_{j}^{n}+\frac{\text{\ensuremath{\Delta t}}}{(\Delta x)^{2}}\left(u_{j+1}^{n}-2u_{j}^{n}+u_{j-1}^{n}\right).\label{eq:waveeq004}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+次に
+\begin_inset Formula $v=u_{t}$
+\end_inset
+
+に対して 2 通りの離散化を考える。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{gather}
+\begin{cases}
+u_{j}^{n+1} & =u_{j}^{n}+v_{j}^{n}\Delta t,\\
+u_{j}^{n+1} & =u_{j}^{n}+v_{j}^{n+1}\Delta t.
+\end{cases}\label{eq:waveeq005}
+\end{gather}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ここで波数 
+\begin_inset Formula $k$
+\end_inset
+
+ のモードの成長を考えてみよう。解を 
+\begin_inset Formula $u_{j}^{n}=A^{n}e^{ijk\Delta x}$
+\end_inset
+
+, 
+\begin_inset Formula $v_{j}^{n}=aA^{n}e^{ijk\Delta x}$
+\end_inset
+
+と仮定し、
+\begin_inset Formula $V=\Delta t/\Delta x$
+\end_inset
+
+、
+\begin_inset Formula $\theta=\frac{1}{2}k\Delta x$
+\end_inset
+
+として方程式を調べてみよう。
+\end_layout
+
+\begin_layout Paragraph
+式 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:waveeq004"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これに代入すると次の式が得られる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+aA & =a+\frac{V}{\Delta x}\left(e^{ik\Delta x}-2+e^{-ik\Delta x}\right)\\
+\Rightarrow a & =-\frac{4V}{(A-1)\Delta x}\sin^{2}\theta.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+最後の式変形ではもちろん
+\begin_inset Formula $A\neq1$
+\end_inset
+
+を仮定している。
+\begin_inset Formula $A=1$
+\end_inset
+
+は定数の場合で、モードの成長という観点からは考える必要がない。
+\end_layout
+
+\begin_layout Paragraph
+式
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:waveeq005"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+の第 1 式
+\end_layout
+
+\begin_layout Standard
+先の解を代入すると次のようになる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+ & A=1+a\Delta t\\
+\Rightarrow & A^{2}-2A+1+4V^{2}\sin^{2}\theta=0\\
+\Rightarrow & A=1\pm2iV\sin\theta\\
+\Rightarrow & |A|^{2}=1+4V^{2}\sin^{2}\theta\geq1.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これは指数的に成長して発散する。
+\end_layout
+
+\begin_layout Paragraph
+式
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:waveeq005"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+の第 2 式
+\end_layout
+
+\begin_layout Standard
+先の解を代入すると次のようになる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+ & A=1+aA\Delta t\\
+\Rightarrow & A^{2}-2(1-2V^{2}\sin^{2}\theta)A+1=0\\
+\Rightarrow & A=1-2V^{2}\sin^{2}\theta\pm2iV\sin\theta\sqrt{1-V^{2}\sin^{2}\theta}\\
+\Rightarrow & |A|^{2}=1.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これはこれは安定的に解ける。
 \end_layout
 
 \begin_layout Section
