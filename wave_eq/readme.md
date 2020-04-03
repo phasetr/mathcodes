@@ -87,11 +87,30 @@ PML は変則的な 1 階化を使う.
 勘違いしないようにドキュメントをよく読んで注意すること.
 
 ## 1dim_wave_eq_pml_right_wall.rs
+- [Youtube 動画](https://www.youtube.com/watch?v=qJapxtwSR3k)
+
 `1dim_wave_eq_pml_processing.rs` では吸収壁は領域中央からはじまっていたのを右端
 5 層に押し込めた.
 
 ## 1dim_wave_eq_u_ut_pml.rs
 - [波動方程式の PML 参考](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)
+
+## 2dim_wave_eq_only_u.rs
+- [YouTube 動画](https://www.youtube.com/watch?v=Wl5gEDZ-bgU)
+
+中心を強制振動させ, それで波を起こしている.
+これだけだとわかりづらいが,
+PML つきの動画と比較すると反射が起こっていることがわかる.
+
+## 2dim_wave_eq_pml_both_side.rs
+- [YouTube 動画](https://www.youtube.com/watch?v=VUUlgO72v4w)
+
+上の動画と同じく中心を強制振動させ, それで波を起こしている.
+こちらは吸収壁をつけた.
+上の動画と比較すると境界で反射が起きていないことがわかる.
+
+PML の定式化については `wave_eq.lyx` 参照.
+
 ## TODO
 次のリンク先の Julia コードを実装する.
 
