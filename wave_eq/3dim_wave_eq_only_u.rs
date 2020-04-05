@@ -1,6 +1,9 @@
-// cargo-deps: chrono
+// cargo-deps: chrono, ndarray
 extern crate chrono;
+extern crate ndarray;
 use chrono::Local;
+use ndarray::prelude::*;
+use ndarray::Array3;
 use std::error;
 use std::fs;
 use std::fs::File;
@@ -14,14 +17,18 @@ const PI: f64 = std::f64::consts::PI;
 struct Config {
     pub c: f64,           // 光速 [m/s]
     pub f: f64,           // 原点で駆動させる振動数
-    pub dx: f64,          // 空間散文間隔 [m]
+    pub dx: f64,          // x 方向の空間散文間隔 [m]
+    pub dy: f64,          // y 方向の空間散文間隔 [m]
+    pub dz: f64,          // z 方向の空間散文間隔 [m]
     pub dt: f64,          // 時間差分間隔 [s]
-    pub nx: usize,        // 計算点数
+    pub nx: usize,        // x 方向の計算点数
+    pub ny: usize,        // y 方向の計算点数
+    pub nz: usize,        // z 方向の計算点数
     pub nt: i64,          // 計算ステップ数
     pub output_step: i64, // 出力ステップ数
     pub m_pml: f64,       // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
     pub r_pml: f64,       // 境界面において実現したい反射係数
-    pub n_pml: i64,       // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
+    pub n_pml: usize,     // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
     pub dir_name: String,
     pub title: String,
     pub specify_png: String,
@@ -35,19 +42,22 @@ impl Config {
         let c = 1.0;
         let f = 5.0;
         let dx = 0.01;
-        let dt = dx / c;
-        let nx = 200;
-        let nt = 1000;
+        let dy = 0.01;
+        let dz = 0.01;
+        let dt = dx / c * 0.1;
+        let nx = 100;
+        let ny = 100;
+        let nz = 100;
+        let nt = 200;
         let output_step = 10;
+        let graph_ulim_min = -0.5;
+        let graph_ulim_max = 0.5;
 
         let m_pml = 2.0;
         let r_pml = 0.5;
         let n_pml = 12;
 
-        let graph_ulim_min = -2.0;
-        let graph_ulim_max = 2.0;
-
-        let prog_name = "1dim-wave-eq-only-u";
+        let prog_name = "3dim-wave-eq-pml";
         let title = Local::now()
             .format(&format!("%Y%m%d-%H%M%S-{}", &prog_name))
             .to_string();
@@ -59,10 +69,14 @@ impl Config {
         Ok(Config {
             c: c,
             f: f,
-            nx: nx,
-            nt: nt,
             dx: dx,
+            dy: dy,
+            dz: dz,
             dt: dt,
+            nx: nx,
+            ny: ny,
+            nz: nz,
+            nt: nt,
             output_step: output_step,
             m_pml: m_pml,
             r_pml: r_pml,
@@ -81,10 +95,12 @@ struct CalcData {
     pub n: i64,
     pub t: f64,
     pub output_num: i64,
-    pub sigma: Vec<f64>,
-    pub x: Vec<f64>,
-    pub u: Vec<f64>,    // 元の関数
-    pub uold: Vec<f64>, // u の 1 階の時間導関数
+    pub sigma: Array3<f64>,
+    pub x: Array1<f64>,
+    pub y: Array1<f64>,
+    pub z: Array1<f64>,
+    pub u: Array3<f64>,    // 元の関数
+    pub uold: Array3<f64>, // u の 1 ステップ前の時間
 }
 
 impl CalcData {
@@ -92,22 +108,66 @@ impl CalcData {
         let n: i64 = 0;
         let t: f64 = 0.0;
         let output_num: i64 = 0;
-        let sigma = vec![0.0; cnf.nx];
 
-        let mut x = vec![0.0; cnf.nx];
-        x[0] = -(cnf.nx as f64) * cnf.dx / 2.0;
-        for i in 1..(cnf.nx) {
+        let mut sigma: Array3<f64> = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
+        // 左側
+        for i in 0..cnf.n_pml {
+            for j in 0..cnf.ny {
+                for k in 0..cnf.nz {
+                    sigma[(i, j, k)] =
+                        cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+                    sigma[(j, i, k)] =
+                        cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+                    sigma[(j, k, i)] =
+                        cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+                }
+            }
+        }
+        // 右側
+        for i in (cnf.nx - cnf.n_pml - 1)..(cnf.nx) {
+            for j in 0..cnf.ny {
+                for k in 0..cnf.nz {
+                    sigma[(i, j, k)] = cnf.r_pml
+                        * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
+                            .powf(cnf.m_pml);
+                    sigma[(j, i, k)] = cnf.r_pml
+                        * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
+                            .powf(cnf.m_pml);
+                    sigma[(k, j, i)] = cnf.r_pml
+                        * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
+                            .powf(cnf.m_pml);
+                }
+            }
+        }
+
+        let mut x = Array::zeros(cnf.nx);
+        x[0] = 0.0;
+        for i in 1..cnf.nx {
             x[i] = x[i - 1] + cnf.dx;
         }
 
-        let u = vec![0.0; cnf.nx];
-        let uold = vec![0.0; cnf.nx];
+        let mut y = Array::zeros(cnf.ny);
+        y[0] = 0.0;
+        for i in 1..cnf.ny {
+            y[i] = y[i - 1] + cnf.dy;
+        }
+
+        let mut z = Array::zeros(cnf.ny);
+        z[0] = 0.0;
+        for i in 1..cnf.nz {
+            z[i] = z[i - 1] + cnf.dz;
+        }
+
+        let u = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
+        let uold = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
         CalcData {
             n: n,
             t: t,
             output_num: output_num,
             sigma: sigma,
             x: x,
+            y: y,
+            z: z,
             u: u,
             uold: uold,
         }
@@ -127,13 +187,18 @@ impl CalcData {
         let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
         let file = File::create(file_name).unwrap();
         let mut w = BufWriter::new(file);
-        write!(w, "x,u\n").unwrap();
+        write!(w, "x,y,u\n").unwrap();
         for i in 0..cnf.nx {
-            let s = format!("{},{}\n", &cdata.x[i], &cdata.u[i]);
-            // unwrapを呼んで書き込みエラーを検知
-            write!(w, "{}", s).unwrap();
+            for j in 0..cnf.ny {
+                let s = format!(
+                    "{},{},{}\n",
+                    &cdata.x[i],
+                    &cdata.y[j],
+                    &cdata.u[(i, j, cnf.nz / 2)],
+                );
+                write!(w, "{}", s).unwrap();
+            }
         }
-        // flushを呼ぶことで書き込みエラーを全て拾える
         w.flush().unwrap();
         Ok(())
     }
@@ -141,7 +206,7 @@ impl CalcData {
     pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
         let csv_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
         let png_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
-        let cmd = Command::new("gnuplot")
+        Command::new("gnuplot")
             .arg("-e")
             .arg(r#"set terminal png;"#)
             .arg("-e")
@@ -152,13 +217,13 @@ impl CalcData {
             .arg(r#"set dgrid3d 100,100;"#)
             .arg("-e")
             .arg(format!(
-                r#"set yrange [{}:{}]"#,
+                r#"set zrange [{}:{}]"#,
                 &cnf.graph_ulim_min, &cnf.graph_ulim_max
             ))
             .arg("-e")
             .arg(format!(r#"set output "{}""#, &png_name))
             .arg("-e")
-            .arg(format!(r#"plot "{}" u 1:2 with lines;"#, &csv_name))
+            .arg(format!(r#"splot "{}" u 1:2:3 with lines;"#, &csv_name))
             .output()
             .expect("failed to start `ffmpeg`");
         Ok(())
@@ -189,14 +254,13 @@ fn main() {
 
     // initc
     let mut cdata = CalcData::new(&cnf);
-    CalcData::write_csv(&cnf, &cdata)
-        .map_err(|err| println!("{:?}", err))
-        .ok();
-    CalcData::write_png(&cnf, &cdata)
+    CalcData::write_all(&cnf, &cdata)
         .map_err(|err| println!("{:?}", err))
         .ok();
 
-    let alpha = (cnf.dt / cnf.dx).powf(2.0);
+    let alpha_x = (cnf.c * cnf.dt / cnf.dx).powf(2.0);
+    let alpha_y = (cnf.c * cnf.dt / cnf.dy).powf(2.0);
+    let alpha_z = (cnf.c * cnf.dt / cnf.dz).powf(2.0);
 
     while cdata.n <= cnf.nt {
         if cdata.n % cnf.output_step == 0 {
@@ -206,21 +270,49 @@ fn main() {
         cdata.n = cdata.n + 1;
         cdata.t = cdata.t + cnf.dt;
 
-        let mut unew = vec![0.0; cnf.nx];
+        let mut unew = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
 
-        cdata.u[cnf.nx / 2 - 1] = 0.5 * f64::sin(2.0 * PI * cnf.f * cdata.t);
+        cdata.u[(cnf.nx / 2, cnf.ny / 2, cnf.nz / 2)] = 0.5 * f64::sin(2.0 * PI * cnf.f * cdata.t);
 
         for i in 1..(cnf.nx - 2) {
-            unew[i] = 2.0 * cdata.u[i] - cdata.uold[i]
-                + alpha * (cdata.u[i + 1] - 2.0 * cdata.u[i] + cdata.u[i - 1]);
+            for j in 1..(cnf.ny - 2) {
+                for k in 1..(cnf.nz - 2) {
+                    unew[(i, j, k)] = 2.0 * cdata.u[(i, j, k)] - cdata.uold[(i, j, k)]
+                        + alpha_x
+                            * (cdata.u[(i + 1, j, k)] - 2.0 * cdata.u[(i, j, k)]
+                                + cdata.u[(i - 1, j, k)])
+                        + alpha_y
+                            * (cdata.u[(i, j + 1, k)] - 2.0 * cdata.u[(i, j, k)]
+                                + cdata.u[(i, j - 1, k)])
+                        + alpha_z
+                            * (cdata.u[(i, j, k + 1)] - 2.0 * cdata.u[(i, j, k)]
+                                + cdata.u[(i, j, k - 1)]);
+                }
+            }
         }
 
         // bc: ディリクレ境界条件
-        unew[0] = 0.0;
-        unew[cnf.nx - 1] = 0.0;
+        for i in 0..(cnf.nx - 1) {
+            unew[(i, 0, 0)] = 0.0;
+            unew[(i, cnf.ny - 1, 0)] = 0.0;
+            unew[(i, 0, cnf.nz - 1)] = 0.0;
+            unew[(i, cnf.ny - 1, cnf.nz - 1)] = 0.0;
+        }
+        for j in 0..(cnf.ny - 1) {
+            unew[(0, j, 0)] = 0.0;
+            unew[(cnf.nx - 1, j, 0)] = 0.0;
+            unew[(0, j, cnf.nz - 1)] = 0.0;
+            unew[(cnf.nx - 1, j, cnf.nz - 1)] = 0.0;
+        }
+        for k in 0..(cnf.ny - 1) {
+            unew[(0, 0, k)] = 0.0;
+            unew[(cnf.nx - 1, 0, k)] = 0.0;
+            unew[(0, cnf.ny - 1, k)] = 0.0;
+            unew[(cnf.nx - 1, cnf.nz - 1, k)] = 0.0;
+        }
 
-        cdata.uold = cdata.u.clone();
         cdata.u = unew.clone();
+        cdata.uold = cdata.u.clone();
 
         if cdata.n % cnf.output_step == 0 {
             CalcData::write_all(&cnf, &cdata)

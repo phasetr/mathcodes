@@ -77,8 +77,59 @@
 
 \begin_body
 
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\grad}{\mathop{\mathrm{grad}}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\divergence}{\mathop{\mathrm{div}}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\rot}{\mathop{\mathrm{rot}}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\bkt}[2]{\left\langle #1,\,#2 \right\rangle }
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\bra}[1]{\left\langle #1 \right|}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\ket}[1]{\left| #1 \right\rangle }
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\rbk}[1]{\left( #1 \right) }
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\cbk}[1]{\left\{  #1 \right\}  }
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 ふつうの波動方程式の離散化
+\end_layout
+
+\begin_layout Standard
+波動方程式は速度を入れて
+\begin_inset Formula $u_{tt}=c^{2}u_{xx}$
+\end_inset
+
+で考える。
 \end_layout
 
 \begin_layout Subsection
@@ -106,7 +157,7 @@ name "subsec:waveeq003"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align}
-\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} & =\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}.\label{eq:waveeq001}
+\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} & =c^{2}\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}.\label{eq:waveeq001}
 \end{align}
 
 \end_inset
@@ -122,7 +173,7 @@ name "subsec:waveeq003"
 \begin_inset Formula 
 \begin{align*}
 u(t+\Delta t,x) & =2u(t,x)-u(t-\Delta t,x)\\
- & \quad-\left(\frac{\Delta t}{\Delta x}\right)^{2}\left(u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)\right).
+ & \quad-\left(\frac{c\Delta t}{\Delta x}\right)^{2}\left(u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)\right).
 \end{align*}
 
 \end_inset
@@ -159,7 +210,7 @@ u(t+\Delta t,x) & =2u(t,x)-u(t-\Delta t,x)\\
 \begin{gather}
 \begin{cases}
 u_{t} & =v,\\
-v_{t} & =u_{xx}
+v_{t} & =c^{2}u_{xx}
 \end{cases}\label{eq:waveeq002}
 \end{gather}
 
@@ -203,7 +254,7 @@ noprefix "false"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-\frac{v(t+\Delta t,x)-v(t,x)}{\Delta t} & =\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}},\\
+\frac{v(t+\Delta t,x)-v(t,x)}{\Delta t} & =c^{2}\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}},\\
 u(t,x) & =u(t-\Delta t,x)+v(t,x)\Delta t.
 \end{align*}
 
@@ -219,7 +270,7 @@ u(t,x) & =u(t-\Delta t,x)+v(t,x)\Delta t.
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-v(t+\Delta t,x) & =v(t,x)+\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}}\Delta t,\\
+v(t+\Delta t,x) & =v(t,x)+c^{2}\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}}\Delta t,\\
 u(t+\Delta t,x) & =u(t,x)+v(t+\Delta t,x)\Delta t.
 \end{align*}
 
@@ -283,11 +334,11 @@ noprefix "false"
 \end_inset
 
 を 
-\begin_inset Formula $v=u_{t},v_{t}=u_{xx}$
+\begin_inset Formula $v=u_{t},v_{t}=c^{2}u_{xx}$
 \end_inset
 
 と 1 階化して離散化する。方程式 
-\begin_inset Formula $v_{t}=u_{xx}$
+\begin_inset Formula $v_{t}=c^{2}u_{xx}$
 \end_inset
 
 は次のように離散化・整理される。
@@ -296,7 +347,7 @@ noprefix "false"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align}
-v_{j}^{n+1} & =v_{j}^{n}+\frac{\text{\ensuremath{\Delta t}}}{(\Delta x)^{2}}\left(u_{j+1}^{n}-2u_{j}^{n}+u_{j-1}^{n}\right).\label{eq:waveeq004}
+v_{j}^{n+1} & =v_{j}^{n}+\frac{c^{2}\text{\ensuremath{\Delta t}}}{(\Delta x)^{2}}\left(u_{j+1}^{n}-2u_{j}^{n}+u_{j-1}^{n}\right).\label{eq:waveeq004}
 \end{align}
 
 \end_inset
@@ -371,8 +422,8 @@ noprefix "false"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-aA & =a+\frac{V}{\Delta x}\left(e^{ik\Delta x}-2+e^{-ik\Delta x}\right)\\
-\Rightarrow a & =-\frac{4V}{(A-1)\Delta x}\sin^{2}\theta.
+aA & =a+\frac{c^{2}V}{\Delta x}\left(e^{ik\Delta x}-2+e^{-ik\Delta x}\right)\\
+\Rightarrow a & =-\frac{4c^{2}V}{(A-1)\Delta x}\sin^{2}\theta.
 \end{align*}
 
 \end_inset
@@ -461,7 +512,7 @@ noprefix "false"
 \end_layout
 
 \begin_layout Standard
-これはこれは安定的に解ける。
+これは安定的に解ける。
 \end_layout
 
 \begin_layout Subsection
@@ -502,7 +553,7 @@ u_{yy} & =\frac{1}{(\Delta y)^{2}}\left(u(x,y+\Delta y)-2u(x,y)+u(x,y-\Delta y)\
 \end_inset
 
 を 
-\begin_inset Formula $v=u_{t},v_{t}=u_{xx}+u_{yy}$
+\begin_inset Formula $v=u_{t},v_{t}=c^{2}\rbk{u_{xx}+u_{yy}}$
 \end_inset
 
 としてから離散化する。1次元の時と同じように考えればいい。
@@ -512,8 +563,8 @@ u_{yy} & =\frac{1}{(\Delta y)^{2}}\left(u(x,y+\Delta y)-2u(x,y)+u(x,y-\Delta y)\
 \begin_inset Formula 
 \begin{align*}
 v(t+\Delta t,x,y) & =v(t,x,y)\\
- & \quad+\frac{u(t,x+\Delta x,y)-2u(t,x,y)+u(t,x-\Delta x,y)}{(\Delta x)^{2}}\Delta t\\
- & \quad+\frac{u(t,x,y+\Delta y)-2u(t,x,y)+u(t,x,y-\Delta y)}{(\Delta x)^{2}}\Delta t,\\
+ & \quad+c^{2}\frac{u(t,x+\Delta x,y)-2u(t,x,y)+u(t,x-\Delta x,y)}{(\Delta x)^{2}}\Delta t\\
+ & \quad+c^{2}\frac{u(t,x,y+\Delta y)-2u(t,x,y)+u(t,x,y-\Delta y)}{(\Delta x)^{2}}\Delta t,\\
 u(t+\Delta t,x,y) & =u(t,x,y)+v(t+\Delta t,x,y)\Delta t.
 \end{align*}
 
@@ -569,7 +620,7 @@ literal "false"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-u_{t} & =w_{x}-\sigma u,\\
+u_{t} & =c^{2}w_{x}-\sigma u,\\
 w_{t} & =u_{x}-\sigma w.
 \end{align*}
 
@@ -670,7 +721,7 @@ w_{t} & =u_{x}-\sigma w.
 
 \begin_layout Standard
 まず普通の波動方程式を考えよう：
-\begin_inset Formula $u_{tt}=u_{xx}$
+\begin_inset Formula $u_{tt}=c^{2}u_{xx}$
 \end_inset
 
 を次のように1階化する。
@@ -679,7 +730,7 @@ w_{t} & =u_{x}-\sigma w.
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-u_{t} & =w_{x},\\
+u_{t} & =c^{2}w_{x},\\
 w_{t} & =u_{x}.
 \end{align*}
 
@@ -695,7 +746,7 @@ w_{t} & =u_{x}.
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-u_{tt} & =\partial_{t}\partial_{t}u=\partial_{t}\partial_{x}w=\partial_{x}\partial_{t}w=\partial_{x}u_{x}=u_{xx}.
+u_{tt} & =\partial_{t}\partial_{t}u=c^{2}\partial_{t}\partial_{x}w=\partial_{x}\partial_{t}w=\partial_{x}u_{x}=u_{xx}.
 \end{align*}
 
 \end_inset
@@ -714,7 +765,7 @@ u_{tt} & =\partial_{t}\partial_{t}u=\partial_{t}\partial_{x}w=\partial_{x}\parti
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-u_{t} & =w_{x}\Rightarrow\frac{u(t+\text{\ensuremath{\Delta t,x)-u(t,x)}}}{\Delta t}=\frac{w(t,x)-w(t,x-\Delta x)}{\Delta x},\\
+u_{t} & =c^{2}w_{x}\Rightarrow\frac{u(t+\text{\ensuremath{\Delta t,x)-u(t,x)}}}{\Delta t}=c^{2}\frac{w(t,x)-w(t,x-\Delta x)}{\Delta x},\\
 w_{t} & =u_{x}\Rightarrow\frac{w(t,x)-w(t-\Delta t,x)}{\Delta t}=\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}.
 \end{align*}
 
@@ -730,7 +781,7 @@ w_{t} & =u_{x}\Rightarrow\frac{w(t,x)-w(t-\Delta t,x)}{\Delta t}=\frac{u(t,x+\De
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-u(t+\Delta t,x) & =u(t,x)+\frac{\Delta t}{\Delta x}(w(t,x)-w(t,-\Delta x),\\
+u(t+\Delta t,x) & =u(t,x)+\frac{c^{2}\Delta t}{\Delta x}(w(t,x)-w(t,-\Delta x),\\
 w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x)\right).
 \end{align*}
 
@@ -746,7 +797,7 @@ w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-u(t+\Delta t,x) & =u(t,x)+\frac{\Delta t}{\Delta x}(w(t,x)-w(t,-\Delta x)-\Delta t\cdot\sigma(x)u(t,x),\\
+u(t+\Delta t,x) & =u(t,x)+\frac{c^{2}\Delta t}{\Delta x}(w(t,x)-w(t,-\Delta x)-\Delta t\cdot\sigma(x)u(t,x),\\
 w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x)\right)-\Delta t\cdot\sigma(x)w(t,x).
 \end{align*}
 
@@ -790,11 +841,11 @@ noprefix "false"
 
 \begin_layout Standard
 この式にまず
-\begin_inset Formula $u_{t}=w_{x}$
+\begin_inset Formula $u_{t}=c^{2}w_{x}$
 \end_inset
 
 から来る
-\begin_inset Formula $\frac{u(t+\text{\ensuremath{\Delta t,x)-u(t,x)}}}{\Delta t}=\frac{w(t,x)-w(t,x-\Delta x)}{\Delta x}$
+\begin_inset Formula $\frac{u(t+\text{\ensuremath{\Delta t,x)-u(t,x)}}}{\Delta t}=c^{2}\frac{w(t,x)-w(t,x-\Delta x)}{\Delta x}$
 \end_inset
 
 を代入し、
@@ -807,16 +858,163 @@ noprefix "false"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} & =\frac{\frac{w(t,x)-w(t,x-\Delta x)}{\Delta x}-\frac{w(t-\Delta t,x)-w(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(\ensuremath{w_{t}=u_{x}\text{の\text{離\text{散\text{化}}}}})}\\
- & =\frac{\frac{w(t,x)-w(t-\Delta t,x)}{\Delta x}-\frac{w(t,x-\Delta x)-w(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(単純な式変形)}\\
- & =\frac{\frac{w(t,x)-w(t-\Delta t,x)}{\Delta t}-\frac{w(t,x-\Delta x)-w(t-\Delta t,x-\Delta x)}{\Delta t}}{\Delta x}\quad\text{(分母の\ensuremath{\Delta t\text{と\ensuremath{\Delta x}を交換)}}}\\
- & =\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}\quad\text{\ensuremath{(w_{t}=u_{x}\text{の離散化を代入)}}}\\
- & \Rightarrow u_{xx}.
+\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} & =c^{2}\frac{\frac{w(t,x)-w(t,x-\Delta x)}{\Delta x}-\frac{w(t-\Delta t,x)-w(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(\ensuremath{u_{t}=c^{2}w_{x}\text{の\text{離\text{散\text{化}}}}})}\\
+ & =c^{2}\frac{\frac{w(t,x)-w(t-\Delta t,x)}{\Delta x}-\frac{w(t,x-\Delta x)-w(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(単純な式変形)}\\
+ & =c^{2}\frac{\frac{w(t,x)-w(t-\Delta t,x)}{\Delta t}-\frac{w(t,x-\Delta x)-w(t-\Delta t,x-\Delta x)}{\Delta t}}{\Delta x}\quad\text{(分母の\ensuremath{\Delta t\text{と\ensuremath{\Delta x}を交換)}}}\\
+ & =c^{2}\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}\quad\text{\ensuremath{(w_{t}=u_{x}\text{の離散化を代入)}}}\\
+ & \Rightarrow c^{2}u_{xx}.
 \end{align*}
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Subsection
+高次元のスカラー場に対する波動方程式の吸収壁
+\end_layout
+
+\begin_layout Subsubsection
+連続系の 1 階化
+\end_layout
+
+\begin_layout Standard
+いったんソースタームなしで考える。（必要ならソースターム追加版も書く。）
+\end_layout
+
+\begin_layout Standard
+波動方程式
+\begin_inset Formula $u_{tt}=c^{2}\triangle u$
+\end_inset
+
+ を次の発散形式に書き換える。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{tt} & =c^{2}\divergence\grad u.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これは次のような
+\begin_inset Formula $\boldsymbol{w}$
+\end_inset
+
+の導入で一階化できる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & =c^{2}\divergence\boldsymbol{w},\\
+\boldsymbol{w}_{t} & =\grad u.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これに次の吸収項をつけた方程式を考える。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & =c^{2}\divergence\boldsymbol{w}-\sigma u,\\
+\boldsymbol{w}_{t} & =\grad u-\sigma\boldsymbol{w}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+結論の差分方程式
+\end_layout
+
+\begin_layout Standard
+次のように離散化するとうまく連続系を離散化できる。ここでは2次元版だけを書く。まず
+\begin_inset Formula $\boldsymbol{w}=(w^{1},w^{2})^{T}$
+\end_inset
+
+と書くことにすると、
+\begin_inset Formula $u_{t}=c^{2}\rbk{w_{x}^{1}+w_{y}^{2}}$
+\end_inset
+
+は次のように書ける。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\frac{u(t+\text{\ensuremath{\Delta t,x,y)-u(t,x,y)}}}{\Delta t} & =c^{2}\frac{w^{1}(t,x,y)-w^{2}(t,x-\Delta x,y)}{\Delta x}\\
+ & \quad+c^{2}\frac{w^{2}(t,x,y)-^{2}(t,x,y-\Delta y}{\Delta y}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+一方
+\begin_inset Formula $\boldsymbol{w}_{t}=\grad u$
+\end_inset
+
+は次のように書ける。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\frac{w^{1}(t+\text{\ensuremath{\Delta t,x,y)}}-w^{1}(t,x,y)}{\Delta t} & =\frac{u(t+\Delta t,x+\Delta x,y)-u(t+\Delta t,x,y)}{\Delta x},\\
+\frac{w^{2}(t+\text{\ensuremath{\Delta t,x,y)}}-w^{2}(t,x,y)}{\Delta t} & =\frac{u(t+\Delta t,x,y+\Delta y)-u(t+\Delta t,x,y)}{\Delta y}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これを整理して吸収項を追加した方程式は次のように書ける。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u(t+\Delta t,x,y) & =u(t,x,y)\\
+ & \quad+\frac{c^{2}\Delta t}{\Delta x}(w^{1}(t,x,y)-w^{1}(t,x-\Delta x,y))\\
+ & \quad+\frac{c^{2}\Delta t}{\Delta y}(w^{2}(t,x,y)-w^{2}(t,x,y-\Delta y))\\
+ & \quad-\Delta t\cdot\sigma(x)u(t,x),\\
+w^{1}(t+\Delta t,x,y) & =w^{1}(t,x,y)\\
+ & \quad+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x,y)-u(t+\Delta t,x,y)\right)\\
+ & \quad-\Delta t\cdot\sigma(x)w^{1}(t,x),\\
+w^{2}(t+\Delta t,x,y) & =w^{2}(t,x,y)\\
+ & \quad+\frac{\Delta t}{\Delta y}\left(u(t+\Delta t,x,y+\Delta y)-u(t+\Delta t,x,y)\right)\\
+ & \quad-\Delta t\cdot\sigma(x)w^{2}(t,x,y).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ソースタームがない場合は直接この方程式を全領域で解くことで適切な
+\begin_inset Formula $u$
+\end_inset
+
+が得られる。
 \end_layout
 
 \end_body

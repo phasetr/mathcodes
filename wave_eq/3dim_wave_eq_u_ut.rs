@@ -3,7 +3,7 @@ extern crate chrono;
 extern crate ndarray;
 use chrono::Local;
 use ndarray::prelude::*;
-use ndarray::Array2;
+use ndarray::Array3;
 use std::error;
 use std::fs;
 use std::fs::File;
@@ -44,20 +44,20 @@ impl Config {
         let dx = 0.01;
         let dy = 0.01;
         let dz = 0.01;
-        let dt = dx / c * 0.5;
+        let dt = dx / c * 0.001;
         let nx = 100;
         let ny = 100;
         let nz = 100;
         let nt = 1000;
-        let output_step = 10;
-        let graph_ulim_min = -0.5;
-        let graph_ulim_max = 0.5;
+        let output_step = 5;
+        let graph_ulim_min = -5.0;
+        let graph_ulim_max = 5.0;
 
         let m_pml = 2.0;
         let r_pml = 0.5;
         let n_pml = 12;
 
-        let prog_name = "2dim-wave-eq-pml-both-side";
+        let prog_name = "3dim-wave-eq-pml";
         let title = Local::now()
             .format(&format!("%Y%m%d-%H%M%S-{}", &prog_name))
             .to_string();
@@ -95,12 +95,12 @@ struct CalcData {
     pub n: i64,
     pub t: f64,
     pub output_num: i64,
-    pub sigma: Array2<f64>,
+    pub sigma: Array3<f64>,
     pub x: Array1<f64>,
     pub y: Array1<f64>,
-    pub u: Array2<f64>,  // 元の関数
-    pub w1: Array2<f64>, // PML 用のベクトル値関数
-    pub w2: Array2<f64>, // PML 用のベクトル値関数
+    pub z: Array1<f64>,
+    pub u: Array3<f64>,  // 元の関数
+    pub ut: Array3<f64>, // 時間導関数
 }
 
 impl CalcData {
@@ -109,25 +109,34 @@ impl CalcData {
         let t: f64 = 0.0;
         let output_num: i64 = 0;
 
-        let mut sigma: Array2<f64> = Array::zeros((cnf.nx, cnf.ny));
+        let mut sigma: Array3<f64> = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
         // 左側
-        for i in 0..(cnf.n_pml) {
-            for j in 0..(cnf.nx) {
-                sigma[(i, j)] =
-                    cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
-                sigma[(j, i)] =
-                    cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+        for i in 0..cnf.n_pml {
+            for j in 0..cnf.ny {
+                for k in 0..cnf.nz {
+                    sigma[(i, j, k)] =
+                        cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+                    sigma[(j, i, k)] =
+                        cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+                    sigma[(j, k, i)] =
+                        cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+                }
             }
         }
         // 右側
         for i in (cnf.nx - cnf.n_pml - 1)..(cnf.nx) {
-            for j in 0..(cnf.nx) {
-                sigma[(i, j)] = cnf.r_pml
-                    * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
-                        .powf(cnf.m_pml);
-                sigma[(j, i)] = cnf.r_pml
-                    * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
-                        .powf(cnf.m_pml);
+            for j in 0..cnf.ny {
+                for k in 0..cnf.nz {
+                    sigma[(i, j, k)] = cnf.r_pml
+                        * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
+                            .powf(cnf.m_pml);
+                    sigma[(j, i, k)] = cnf.r_pml
+                        * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
+                            .powf(cnf.m_pml);
+                    sigma[(k, j, i)] = cnf.r_pml
+                        * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
+                            .powf(cnf.m_pml);
+                }
             }
         }
 
@@ -143,9 +152,14 @@ impl CalcData {
             y[i] = y[i - 1] + cnf.dy;
         }
 
-        let u = Array::zeros((cnf.nx, cnf.ny));
-        let w1 = Array::zeros((cnf.nx, cnf.ny));
-        let w2 = Array::zeros((cnf.nx, cnf.ny));
+        let mut z = Array::zeros(cnf.ny);
+        z[0] = 0.0;
+        for i in 1..cnf.nz {
+            z[i] = z[i - 1] + cnf.dz;
+        }
+
+        let u = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
+        let ut = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
         CalcData {
             n: n,
             t: t,
@@ -153,9 +167,9 @@ impl CalcData {
             sigma: sigma,
             x: x,
             y: y,
+            z: z,
             u: u,
-            w1: w1,
-            w2: w2,
+            ut: ut,
         }
     }
 
@@ -173,10 +187,16 @@ impl CalcData {
         let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
         let file = File::create(file_name).unwrap();
         let mut w = BufWriter::new(file);
-        write!(w, "x,y,u\n").unwrap();
+        write!(w, "x,y,u,ut\n").unwrap();
         for i in 0..cnf.nx {
             for j in 0..cnf.ny {
-                let s = format!("{},{},{}\n", &cdata.x[i], &cdata.y[j], &cdata.u[(i, j)],);
+                let s = format!(
+                    "{},{},{},{}\n",
+                    &cdata.x[i],
+                    &cdata.y[j],
+                    &cdata.u[(i, j, cnf.nz / 2)],
+                    &cdata.ut[(i, j, cnf.nz / 2)],
+                );
                 write!(w, "{}", s).unwrap();
             }
         }
@@ -239,8 +259,9 @@ fn main() {
         .map_err(|err| println!("{:?}", err))
         .ok();
 
-    let alpha_x = cnf.c.powf(2.0) * cnf.dt / cnf.dx;
-    let alpha_y = cnf.c.powf(2.0) * cnf.dt / cnf.dy;
+    let alpha_x = cnf.c.powf(2.0) * cnf.dt / cnf.dx.powf(2.0);
+    let alpha_y = cnf.c.powf(2.0) * cnf.dt / cnf.dy.powf(2.0);
+    let alpha_z = cnf.c.powf(2.0) * cnf.dt / cnf.dz.powf(2.0);
 
     while cdata.n <= cnf.nt {
         if cdata.n % cnf.output_step == 0 {
@@ -250,34 +271,51 @@ fn main() {
         cdata.n = cdata.n + 1;
         cdata.t = cdata.t + cnf.dt;
 
-        let mut unew = Array::zeros((cnf.nx, cnf.ny));
-        let mut w1new = Array::zeros((cnf.nx, cnf.ny));
-        let mut w2new = Array::zeros((cnf.nx, cnf.ny));
+        let mut unew = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
+        let mut utnew = Array::zeros((cnf.nx, cnf.ny, cnf.nz));
 
-        cdata.u[(cnf.nx / 2, cnf.ny / 2)] = 0.5 * f64::sin(2.0 * PI * cnf.f * cdata.t);
+        cdata.u[(cnf.nx / 2, cnf.ny / 2, cnf.nz / 2)] = 0.5 * f64::sin(2.0 * PI * cnf.f * cdata.t);
 
-        // u と w の計算はわける必要あり.
         for i in 1..(cnf.nx - 1) {
             for j in 1..(cnf.ny - 1) {
-                unew[(i, j)] = cdata.u[(i, j)]
-                    + alpha_x * (cdata.w1[(i, j)] - cdata.w1[(i - 1, j)])
-                    + alpha_y * (cdata.w2[(i, j)] - cdata.w2[(i, j - 1)])
-                    - cdata.sigma[(i, j)] * cdata.u[(i, j)];
+                for k in 1..(cnf.nz - 1) {
+                    utnew[(i, j, k)] = cdata.ut[(i, j, k)]
+                        + alpha_x
+                            * (cdata.u[(i + 1, j, k)] - 2.0 * cdata.u[(i, j, k)]
+                                + cdata.u[(i - 1, j, k)])
+                        + alpha_y
+                            * (cdata.u[(i, j + 1, k)] - 2.0 * cdata.u[(i, j, k)]
+                                + cdata.u[(i, j - 1, k)])
+                        + alpha_z
+                            * (cdata.u[(i, j, k + 1)] - 2.0 * cdata.u[(i, j, k)]
+                                + cdata.u[(i, j, k - 1)]);
+                    unew[(i, j, k)] = cdata.ut[(i, j, k)] + cnf.dt * utnew[(i, j, k)];
+                }
             }
         }
-        for i in 0..(cnf.nx - 2) {
-            // for の開始位置に注意
-            for j in 0..(cnf.ny - 2) {
-                w1new[(i, j)] = cdata.w1[(i, j)] + alpha_x * (unew[(i + 1, j)] - unew[(i, j)])
-                    - cdata.sigma[(i, j)] * cdata.w1[(i, j)];
-                w2new[(i, j)] = cdata.w2[(i, j)] + alpha_y * (unew[(i, j + 1)] - unew[(i, j)])
-                    - cdata.sigma[(i, j)] * cdata.w2[(i, j)];
-            }
+
+        // bc: ディリクレ境界条件
+        for i in 0..(cnf.nx - 1) {
+            unew[(i, 0, 0)] = 0.0;
+            unew[(i, cnf.ny - 1, 0)] = 0.0;
+            unew[(i, 0, cnf.nz - 1)] = 0.0;
+            unew[(i, cnf.ny - 1, cnf.nz - 1)] = 0.0;
+        }
+        for j in 0..(cnf.ny - 1) {
+            unew[(0, j, 0)] = 0.0;
+            unew[(cnf.nx - 1, j, 0)] = 0.0;
+            unew[(0, j, cnf.nz - 1)] = 0.0;
+            unew[(cnf.nx - 1, j, cnf.nz - 1)] = 0.0;
+        }
+        for k in 0..(cnf.ny - 1) {
+            unew[(0, 0, k)] = 0.0;
+            unew[(cnf.nx - 1, 0, k)] = 0.0;
+            unew[(0, cnf.ny - 1, k)] = 0.0;
+            unew[(cnf.nx - 1, cnf.nz - 1, k)] = 0.0;
         }
 
         cdata.u = unew.clone();
-        cdata.w1 = w1new.clone();
-        cdata.w2 = w2new.clone();
+        cdata.ut = utnew.clone();
 
         if cdata.n % cnf.output_step == 0 {
             CalcData::write_all(&cnf, &cdata)

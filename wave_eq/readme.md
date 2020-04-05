@@ -115,5 +115,6 @@ PML の定式化については `wave_eq.lyx` 参照.
 次のリンク先の Julia コードを実装する.
 
 - <https://twitter.com/genkuroki/status/1245073613973123072>
+- <https://twitter.com/genkuroki/status/1246083852251975680>
 
 Rust でもベクトル計算したいのだが, できる?

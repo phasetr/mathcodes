@@ -4,7 +4,6 @@ extern crate ndarray;
 use chrono::Local;
 use ndarray::prelude::*;
 use ndarray::Array2;
-use std::env;
 use std::error;
 use std::fs;
 use std::fs::File;
@@ -45,8 +44,10 @@ impl Config {
         let dt = dx / c * 0.5;
         let nx = 100;
         let ny = 100;
-        let nt = 2000;
-        let output_step = 5;
+        let nt = 1000;
+        let output_step = 10;
+        let graph_ulim_min = -0.5;
+        let graph_ulim_max = 0.5;
 
         let m_pml = 2.0;
         let r_pml = 0.5;
@@ -78,8 +79,8 @@ impl Config {
             title: title,
             specify_png: specify_png,
             movie_name: movie_name,
-            graph_ulim_min: -1.5,
-            graph_ulim_max: 1.5,
+            graph_ulim_min: graph_ulim_min,
+            graph_ulim_max: graph_ulim_max,
         })
     }
 }
@@ -101,7 +102,27 @@ impl CalcData {
         let t: f64 = 0.0;
         let output_num: i64 = 0;
 
-        let sigma = Array::zeros((cnf.nx, cnf.ny));
+        let mut sigma: Array2<f64> = Array::zeros((cnf.nx, cnf.ny));
+        // 左側
+        for i in 0..(cnf.n_pml) {
+            for j in 0..(cnf.nx) {
+                sigma[(i, j)] =
+                    cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+                sigma[(j, i)] =
+                    cnf.r_pml * (((cnf.n_pml - i) as f64) / (cnf.n_pml as f64)).powf(cnf.m_pml);
+            }
+        }
+        // 右側
+        for i in (cnf.nx - cnf.n_pml - 1)..(cnf.nx) {
+            for j in 0..(cnf.nx) {
+                sigma[(i, j)] = cnf.r_pml
+                    * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
+                        .powf(cnf.m_pml);
+                sigma[(j, i)] = cnf.r_pml
+                    * (((i - (cnf.nx - cnf.n_pml - 1)) as f64) / (cnf.n_pml as f64))
+                        .powf(cnf.m_pml);
+            }
+        }
 
         let mut x = Array::zeros(cnf.nx);
         x[0] = 0.0;
@@ -133,6 +154,9 @@ impl CalcData {
         CalcData::write_csv(&cnf, &cdata)
             .map_err(|err| println!("{:?}", err))
             .ok();
+        CalcData::write_png(&cnf, &cdata)
+            .map_err(|err| println!("{:?}", err))
+            .ok();
         Ok(())
     }
 
@@ -143,11 +167,37 @@ impl CalcData {
         write!(w, "x,y,u\n").unwrap();
         for i in 0..cnf.nx {
             for j in 0..cnf.ny {
-                let s = format!("{},{},{},{}\n", &cdata.x[i], &cdata.y[j], &cdata.u[(i, j)],);
+                let s = format!("{},{},{}\n", &cdata.x[i], &cdata.y[j], &cdata.u[(i, j)],);
                 write!(w, "{}", s).unwrap();
             }
         }
         w.flush().unwrap();
+        Ok(())
+    }
+
+    pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
+        let csv_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
+        let png_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
+        let cmd = Command::new("gnuplot")
+            .arg("-e")
+            .arg(r#"set terminal png;"#)
+            .arg("-e")
+            .arg(r#"set datafile separator ",""#)
+            .arg("-e")
+            .arg(r#"set ticslevel 0;"#)
+            .arg("-e")
+            .arg(r#"set dgrid3d 100,100;"#)
+            .arg("-e")
+            .arg(format!(
+                r#"set zrange [{}:{}]"#,
+                &cnf.graph_ulim_min, &cnf.graph_ulim_max
+            ))
+            .arg("-e")
+            .arg(format!(r#"set output "{}""#, &png_name))
+            .arg("-e")
+            .arg(format!(r#"splot "{}" u 1:2:3 with lines;"#, &csv_name))
+            .output()
+            .expect("failed to start `ffmpeg`");
         Ok(())
     }
 
@@ -180,7 +230,8 @@ fn main() {
         .map_err(|err| println!("{:?}", err))
         .ok();
 
-    let alpha = cnf.dt / cnf.dx.powf(2.0);
+    let alpha_x = cnf.c.powf(2.0) * cnf.dt / cnf.dx.powf(2.0);
+    let alpha_y = cnf.c.powf(2.0) * cnf.dt / cnf.dy.powf(2.0);
 
     while cdata.n <= cnf.nt {
         if cdata.n % cnf.output_step == 0 {
@@ -198,8 +249,8 @@ fn main() {
         for i in 1..(cnf.nx - 2) {
             for j in 1..(cnf.ny - 2) {
                 utnew[(i, j)] = cdata.ut[(i, j)]
-                    + alpha * (cdata.u[(i - 1, j)] - 2.0 * cdata.u[(i, j)] + cdata.u[(i + 1, j)])
-                    + alpha * (cdata.u[(i, j - 1)] - 2.0 * cdata.u[(i, j)] + cdata.u[(i, j + 1)]);
+                    + alpha_x * (cdata.u[(i - 1, j)] - 2.0 * cdata.u[(i, j)] + cdata.u[(i + 1, j)])
+                    + alpha_y * (cdata.u[(i, j - 1)] - 2.0 * cdata.u[(i, j)] + cdata.u[(i, j + 1)]);
                 unew[(i, j)] = cdata.u[(i, j)] + cnf.dt * utnew[(i, j)];
             }
         }
@@ -224,4 +275,9 @@ fn main() {
             cdata.output_num += 1;
         }
     }
+
+    CalcData::write_mp4(&cnf)
+        .map_err(|err| println!("{:?}", err))
+        .ok();
+    println!("{} として結果を出力しています.", &cnf.movie_name);
 }

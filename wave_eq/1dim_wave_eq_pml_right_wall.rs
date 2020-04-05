@@ -1,8 +1,6 @@
-// cargo-deps: chrono, gnuplot
+// cargo-deps: chrono
 extern crate chrono;
-extern crate gnuplot;
 use chrono::Local;
-use gnuplot::*;
 use std::error;
 use std::fs;
 use std::fs::File;
@@ -28,8 +26,8 @@ struct Config {
     pub title: String,
     pub specify_png: String,
     pub movie_name: String,
-    pub graph_ylim_min: f64,
-    pub graph_ylim_max: f64,
+    pub graph_ulim_min: f64,
+    pub graph_ulim_max: f64,
 }
 
 impl Config {
@@ -41,6 +39,9 @@ impl Config {
         let nx = 200;
         let nt = 2000;
         let output_step = 20;
+
+        let graph_ulim_min = -3.0;
+        let graph_ulim_max = 3.0;
 
         let m_pml = 3.0;
         let r_pml = 0.5;
@@ -70,8 +71,8 @@ impl Config {
             title: title,
             specify_png: specify_png,
             movie_name: movie_name,
-            graph_ylim_min: -3.0,
-            graph_ylim_max: 3.0,
+            graph_ulim_min: graph_ulim_min,
+            graph_ulim_max: graph_ulim_max,
         })
     }
 }
@@ -130,9 +131,9 @@ impl CalcData {
         let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
         let file = File::create(file_name).unwrap();
         let mut w = BufWriter::new(file);
-        write!(w, "x,u,s\n").unwrap();
+        write!(w, "x,u\n").unwrap();
         for i in 0..cnf.nx {
-            let s = format!("{},{},{}\n", &cdata.x[i], &cdata.u[i], &cdata.sigma[i]);
+            let s = format!("{},{}\n", &cdata.x[i], &cdata.u[i]);
             // unwrapを呼んで書き込みエラーを検知
             write!(w, "{}", s).unwrap();
         }
@@ -142,19 +143,28 @@ impl CalcData {
     }
 
     pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
-        let file_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
-        let mut fg = Figure::new();
-        fg.axes2d()
-            .set_title(&cnf.title, &[])
-            .set_legend(Graph(1.0), Graph(1.0), &[], &[])
-            .set_y_range(Fix(cnf.graph_ylim_min), Fix(cnf.graph_ylim_max))
-            .set_x_label("x", &[])
-            .set_y_label("u", &[])
-            .lines(&cdata.x, &cdata.u, &[Caption("u"), LineWidth(2.5)]);
-        fg.save_to_png(file_name, 800, 800)
-            .map_err(|err| println!("{:?}", err))
-            .ok();
-
+        let csv_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
+        let png_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
+        let cmd = Command::new("gnuplot")
+            .arg("-e")
+            .arg(r#"set terminal png;"#)
+            .arg("-e")
+            .arg(r#"set datafile separator ",""#)
+            .arg("-e")
+            .arg(r#"set ticslevel 0;"#)
+            .arg("-e")
+            .arg(r#"set dgrid3d 100,100;"#)
+            .arg("-e")
+            .arg(format!(
+                r#"set yrange [{}:{}]"#,
+                &cnf.graph_ulim_min, &cnf.graph_ulim_max
+            ))
+            .arg("-e")
+            .arg(format!(r#"set output "{}""#, &png_name))
+            .arg("-e")
+            .arg(format!(r#"plot "{}" u 1:2 with lines;"#, &csv_name))
+            .output()
+            .expect("failed to start `ffmpeg`");
         Ok(())
     }
 

@@ -1,8 +1,6 @@
-// cargo-deps: chrono, gnuplot
+// cargo-deps: chrono
 extern crate chrono;
-extern crate gnuplot;
 use chrono::Local;
-use gnuplot::*;
 use std::error;
 use std::fs;
 use std::fs::File;
@@ -23,13 +21,13 @@ struct Config {
     pub output_step: i64, // 出力ステップ数
     pub m_pml: f64,       // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
     pub r_pml: f64,       // 境界面において実現したい反射係数
-    pub n_pml: usize,     // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
+    pub n_pml: i64,       // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
     pub dir_name: String,
     pub title: String,
     pub specify_png: String,
     pub movie_name: String,
-    pub graph_ylim_min: f64,
-    pub graph_ylim_max: f64,
+    pub graph_ulim_min: f64,
+    pub graph_ulim_max: f64,
 }
 
 impl Config {
@@ -38,13 +36,16 @@ impl Config {
         let f = 5.0;
         let dx = 0.01;
         let dt = dx / c * 0.5;
-        let nx = 200;
-        let nt = 2000;
-        let output_step = 20;
+        let nx: usize = 200;
+        let nt = 1000;
+        let output_step = 10;
 
-        let m_pml = 3.0;
+        let graph_ulim_min = -1.0;
+        let graph_ulim_max = 1.0;
+
+        let m_pml = 2.0;
         let r_pml = 0.5;
-        let n_pml = nx / 2;
+        let n_pml = (nx / 2) as i64;
 
         let prog_name = "1dim-wave-eq-pml-processing";
         let title = Local::now()
@@ -70,8 +71,8 @@ impl Config {
             title: title,
             specify_png: specify_png,
             movie_name: movie_name,
-            graph_ylim_min: -3.0,
-            graph_ylim_max: 3.0,
+            graph_ulim_min: graph_ulim_min,
+            graph_ulim_max: graph_ulim_max,
         })
     }
 }
@@ -83,7 +84,7 @@ struct CalcData {
     pub sigma: Vec<f64>,
     pub x: Vec<f64>,
     pub u: Vec<f64>, // 元の関数
-    pub v: Vec<f64>, // u の 1 階の時間導関数
+    pub v: Vec<f64>, // PML の関数
 }
 
 impl CalcData {
@@ -93,8 +94,9 @@ impl CalcData {
         let output_num: i64 = 0;
 
         let mut sigma = vec![0.0; cnf.nx];
-        for i in (cnf.nx - cnf.n_pml)..(cnf.nx) {
-            sigma[i] = cnf.r_pml * (((i - (cnf.nx - cnf.n_pml)) as f64) / (cnf.n_pml as f64));
+        for i in (cnf.nx - (cnf.n_pml as usize))..(cnf.nx) {
+            sigma[i] =
+                cnf.r_pml * (((i - (cnf.nx - (cnf.n_pml as usize))) as f64) / (cnf.n_pml as f64));
         }
 
         let mut x = vec![0.0; cnf.nx];
@@ -130,9 +132,9 @@ impl CalcData {
         let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
         let file = File::create(file_name).unwrap();
         let mut w = BufWriter::new(file);
-        write!(w, "x,u,s\n").unwrap();
+        write!(w, "x,u\n").unwrap();
         for i in 0..cnf.nx {
-            let s = format!("{},{},{}\n", &cdata.x[i], &cdata.u[i], &cdata.sigma[i]);
+            let s = format!("{},{}\n", &cdata.x[i], &cdata.u[i]);
             // unwrapを呼んで書き込みエラーを検知
             write!(w, "{}", s).unwrap();
         }
@@ -142,19 +144,28 @@ impl CalcData {
     }
 
     pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
-        let file_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
-        let mut fg = Figure::new();
-        fg.axes2d()
-            .set_title(&cnf.title, &[])
-            .set_legend(Graph(1.0), Graph(1.0), &[], &[])
-            .set_y_range(Fix(cnf.graph_ylim_min), Fix(cnf.graph_ylim_max))
-            .set_x_label("x", &[])
-            .set_y_label("u", &[])
-            .lines(&cdata.x, &cdata.u, &[Caption("u"), LineWidth(2.5)]);
-        fg.save_to_png(file_name, 800, 800)
-            .map_err(|err| println!("{:?}", err))
-            .ok();
-
+        let csv_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
+        let png_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
+        let cmd = Command::new("gnuplot")
+            .arg("-e")
+            .arg(r#"set terminal png;"#)
+            .arg("-e")
+            .arg(r#"set datafile separator ",""#)
+            .arg("-e")
+            .arg(r#"set ticslevel 0;"#)
+            .arg("-e")
+            .arg(r#"set dgrid3d 100,100;"#)
+            .arg("-e")
+            .arg(format!(
+                r#"set yrange [{}:{}]"#,
+                &cnf.graph_ulim_min, &cnf.graph_ulim_max
+            ))
+            .arg("-e")
+            .arg(format!(r#"set output "{}""#, &png_name))
+            .arg("-e")
+            .arg(format!(r#"plot "{}" u 1:2 with lines;"#, &csv_name))
+            .output()
+            .expect("failed to start `ffmpeg`");
         Ok(())
     }
 
