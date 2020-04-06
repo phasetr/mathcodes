@@ -95,6 +95,9 @@ PML は変則的な 1 階化を使う.
 ## 1dim_wave_eq_u_ut_pml.rs
 - [波動方程式の PML 参考](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)
 
+## 1dim_wave_eq_u_ut_with_src.rs
+- [YouTube へのリンク](https://www.youtube.com/watch?v=G0-1apiHiog&feature=youtu.be)
+
 ## 2dim_wave_eq_only_u.rs
 - [YouTube 動画](https://www.youtube.com/watch?v=Wl5gEDZ-bgU)
 
