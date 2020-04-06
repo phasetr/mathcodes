@@ -4,7 +4,7 @@
 \begin_header
 \save_transient_properties true
 \origin unavailable
-\textclass jsarticle
+\textclass jsbook
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -120,7 +120,11 @@
 
 \end_layout
 
-\begin_layout Section
+\begin_layout Part
+波動方程式
+\end_layout
+
+\begin_layout Chapter
 ふつうの波動方程式の離散化
 \end_layout
 
@@ -132,11 +136,11 @@
 で考える。
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 1 次元
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 \begin_inset Formula $u$
 \end_inset
 
@@ -193,7 +197,7 @@ u(t+\Delta t,x) & =2u(t,x)-u(t-\Delta t,x)\\
 が入っていることで、1 つ前の時間のデータも持っておかなくてはならない。
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 1 階化
 \end_layout
 
@@ -316,7 +320,7 @@ noprefix "false"
 を計算しなければいけない点が変わる。
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 フォン・ノイマンの安定性解析
 \end_layout
 
@@ -401,7 +405,7 @@ u_{j}^{n+1} & =u_{j}^{n}+v_{j}^{n+1}\Delta t.
 として方程式を調べてみよう。
 \end_layout
 
-\begin_layout Subparagraph
+\begin_layout Subsubsection
 式 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -443,7 +447,7 @@ aA & =a+\frac{c^{2}V}{\Delta x}\left(e^{ik\Delta x}-2+e^{-ik\Delta x}\right)\\
 は定数の場合で、モードの成長という観点からは考える必要がない。
 \end_layout
 
-\begin_layout Subparagraph
+\begin_layout Subsubsection
 式
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -479,7 +483,7 @@ noprefix "false"
 これは指数的に成長して発散する。
 \end_layout
 
-\begin_layout Subparagraph
+\begin_layout Paragraph
 式
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -515,11 +519,11 @@ noprefix "false"
 これは安定的に解ける。
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 2次元
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 ラプラシアンの離散化
 \end_layout
 
@@ -543,7 +547,7 @@ u_{yy} & =\frac{1}{(\Delta y)^{2}}\left(u(x,y+\Delta y)-2u(x,y)+u(x,y-\Delta y)\
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 一階化
 \end_layout
 
@@ -573,11 +577,11 @@ u(t+\Delta t,x,y) & =u(t,x,y)+v(t+\Delta t,x,y)\Delta t.
 
 \end_layout
 
-\begin_layout Section
+\begin_layout Chapter
 PML
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 参考文献
 \end_layout
 
@@ -593,7 +597,7 @@ literal "false"
 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 特殊な 1 階化
 \end_layout
 
@@ -601,7 +605,7 @@ literal "false"
 上で書いたのとは違う 1 階化を使うのがポイント。以下で詳しく説明する。
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 結論
 \end_layout
 
@@ -657,7 +661,7 @@ w_{t} & =u_{x}-\sigma w.
 を挿入した形になっている。
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Subsubsection
 吸収壁の具体例
 \end_layout
 
@@ -715,7 +719,7 @@ w_{t} & =u_{x}-\sigma w.
 は 2-3 を取ることが多いようだが、きちんと吸収してくれれば何でも構わない。
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 連続系の 1 階化
 \end_layout
 
@@ -754,7 +758,7 @@ u_{tt} & =\partial_{t}\partial_{t}u=c^{2}\partial_{t}\partial_{x}w=\partial_{x}\
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 結論の差分方程式
 \end_layout
 
@@ -806,7 +810,7 @@ w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 差分方程式の正当化
 \end_layout
 
@@ -870,11 +874,11 @@ noprefix "false"
 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 高次元のスカラー場に対する波動方程式の吸収壁
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 連続系の 1 階化
 \end_layout
 
@@ -937,7 +941,7 @@ u_{t} & =c^{2}\divergence\boldsymbol{w}-\sigma u,\\
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 結論の差分方程式
 \end_layout
 

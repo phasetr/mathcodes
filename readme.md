@@ -96,3 +96,219 @@ Jupyter Notebook については jupyter/fundamental.ipynb にまとめてある
 jupyter/fundamental.ipynb を軽く眺めたら,
 次に jupyter/math_simple_graph.ipynb を見てほしい.
 あとは適当に書き進めていく.
+
+# visualization
+## VTK
+- [VTK documentation](https://vtk.org/documentation/)
+- [データサンプル](https://vtk.org/Wiki/VTK_Datasets)
+- [CSV を読み込む](https://qiita.com/implicit_none/items/e108e0b9f30784ec719a)
+
+# wave_eq
+## URL メモ
+- 2 次元, 条件いろいろ [Python で波動方程式の数値計算と動画 gif の書き出しをやらせてみよう](http://wakabame.hatenablog.com/entry/2018/03/07/205717)
+- FTCS 法 [Pythonによる科学・技術計算 FTCS法(陽解法)による1次元・2次元波動方程式の数値解法，双曲型偏微分方程式](https://qiita.com/sci_Haru/items/8535f435ffa1febcd445)
+- [流体力学の方程式をpythonでシミュレーションする 1](https://qiita.com/moootoko/items/3f89efc0d6aff7c1c066)
+
+## ファイルごとの方程式の説明
+### 1dim_wave_eq_only_u.rs
+- [YouTube へのリンク](https://www.youtube.com/watch?v=spe1Yp2_vVI&feature=youtu.be)
+
+[このページ](http://www.yamamo10.jp/yamamoto/lecture/2004/5E/partial_diff/text_wave/html/node2.html)を参考にして,
+素直に波動方程式を解いている.
+
+初期条件は $u = 0, u_t = 0$ で,
+原点で波を $(1/2) \sin (2 \pi f t)$ で駆動していて,
+次のように離散化している.
+
+\begin{align}
+u(t + \Delta t, x) =
+2 u(t,x) - u(t - \Delta t, x)
++ \left( \frac{\Delta t}{\Delta x} \right)^2 (u(t,x + \Delta x) - 2 u(t,x) + u(t,x)).
+\end{align}
+
+### 1dim_wave_eq_pml_both_side_compare.rs
+- [YouTube へのリンク](https://www.youtube.com/watch?v=2lwbDbXS5NE&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=100)
+
+PML の有無を比較している.
+
+### 1dim_wave_eq_u_ut.rs
+- [Youtube へのリンク](https://www.youtube.com/watch?v=ILb9vJI6uQg&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=88&t=0s)
+
+初期条件や波の駆動は `1dim_wave_eq_only_u.rs` と同じ設定にしている.
+2 階の常微分方程式でよくやるように, $u, v = u_t$ として,
+次の連立の偏微分方程式を解く形にしている.
+
+\begin{align}
+u_t = v, \quad v_t = u_{xx}.
+\end{align}
+
+[黒木さんからの指摘](https://twitter.com/genkuroki/status/1245037226284552199)を受け,
+次のように離散化する.
+
+まず大元の波動方程式を次のように離散化する.
+
+\begin{align}
+\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} &=
+\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}.
+\end{align}
+
+ここで $v(t,x)=\frac{u(t,x)-u(t-\text{\ensuremath{\Delta t,x)}}}{\Delta t}$ と書くことにすると,
+上の差分化は次のように書き直せる.
+
+\begin{align}
+\frac{v(t+\Delta t,x)-v(t,x)}{\Delta t} & =
+\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}},\\
+u(t,x) & =
+u(t-\Delta t,x)+v(t,x)\Delta t.
+\end{align}
+
+これをさらに次のように書き直し,
+最終的に次の離散化で計算する.
+
+\begin{align}
+v(t+\Delta t,x) &=
+v(t,x)+\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}}\Delta t,\\
+u(t+\Delta t,x) &=
+u(t,x)+v(t+\Delta t,x)\Delta t.
+\end{align}
+
+#### まずい離散化メモ
+はじめに実装していたバージョン.
+記録のために残しておく.
+
+> これを次のように離散化した.
+>
+> \begin{align}
+> u(t + \Delta t, x) &=
+> u(t, x) + v(t, x) \Delta t, \\
+> v(t + \Delta t, x) &=
+> v(t, x) + \frac{u(t, x - \Delta x) - 2 u(t,x) + u(t, x + \Delta x)}{(\Delta x)^2} \Delta t.
+> \end{align}
+
+### 1dim_wave_eq_pml_processing.rs
+- [Youtube へのリンク](https://www.youtube.com/watch?v=pwHatoXioR8&feature=youtu.be)
+
+[このページ](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)にある processing のコード,
+`processing/sketch_1dim_wave_eq_pml.pde` を直接移植したコード.
+左端で振動を駆動させていて,
+領域中央の `cnf.nx / 2` から吸収壁が始まる.
+
+PML は変則的な 1 階化を使う.
+これは `math_memo.lyx` にまとめた.
+勘違いしないようにドキュメントをよく読んで注意すること.
+
+### 1dim_wave_eq_pml_right_wall.rs
+- [Youtube 動画](https://www.youtube.com/watch?v=qJapxtwSR3k)
+
+`1dim_wave_eq_pml_processing.rs` では吸収壁は領域中央からはじまっていたのを右端
+5 層に押し込めた.
+
+### 1dim_wave_eq_u_ut_pml.rs
+- [波動方程式の PML 参考](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)
+
+### 1dim_wave_eq_u_ut_with_src.rs
+- [YouTube へのリンク](https://www.youtube.com/watch?v=G0-1apiHiog&feature=youtu.be)
+
+### 2dim_wave_eq_only_u.rs
+- [YouTube 動画](https://www.youtube.com/watch?v=Wl5gEDZ-bgU)
+
+中心を強制振動させ, それで波を起こしている.
+これだけだとわかりづらいが,
+PML つきの動画と比較すると反射が起こっていることがわかる.
+
+### 2dim_wave_eq_pml_both_side.rs
+- [YouTube 動画](https://www.youtube.com/watch?v=VUUlgO72v4w)
+
+上の動画と同じく中心を強制振動させ, それで波を起こしている.
+こちらは吸収壁をつけた.
+上の動画と比較すると境界で反射が起きていないことがわかる.
+
+PML の定式化については `math_memo.lyx` 参照.
+
+### TODO
+次のリンク先の Julia コードを実装する.
+
+- <https://twitter.com/genkuroki/status/1245073613973123072>
+- <https://twitter.com/genkuroki/status/1246083852251975680>
+
+Rust でもベクトル計算したいのだが, できる?
+
+# TODO リスト・参考文献
+Python または Rust でコードを書いて貯めたい.
+
+- http://www.math.sci.hiroshima-u.ac.jp/~awa/SUURI_11/saishuu.html
+- http://nalab.mind.meiji.ac.jp/~mk/labo/text/wave.pdf
+- https://twitter.com/genkuroki/status/1245079528692535298
+- [Haskell 荘園](https://scrapbox.io/haskell-shoen/)
+- FDTD、粒子法、格子ボルツマン
+    - PySPH https://github.com/pypr/pysph
+    - 検討 https://twitter.com/mathsorcerer/status/1227950814410371072?s=21
+- https://twitter.com/corymsimon/status/1225178682324475905?s=21
+- 制御をJulia+Jupyterでやっているとかいう講義資料がある模様。
+- https://twitter.com/kaisekigakumoyo/status/1225742614789533696?s=21
+- Computational Linear Algebra for Coders (taught in Python with Jupyter Notebooks) 講義Youtubeつき
+- Pythonでできる！ 2次元コロイド結晶の構造解析https://qiita.com/kon2/items/c587fa826bf2134c8e1e
+- 装飾パターンの法則 フェドロフ、エッシャー、ペンローズ https://honto.jp/netstore/pd-book_27281704.html
+- https://twitter.com/ceptree/status/1238309859981844483?s=21
+- CFD Julia: A Learning Module Structuring an Introductory Course on Computational Fluid Dynamics
+- https://www.mdpi.com/2311-5521/4/3/159
+- http://kamonama.blogspot.com/2009/02/blog-post_23.html
+    - http://kamonama.blogspot.com/2009/02/blog-post_23.html
+    - http://kamonama.blogspot.com/2009/11/haskellocamlsph.html
+    - http://science.cc.kochi-u.ac.jp/scientific_reports/vol02/serfst201901.pdf
+- 粒子法 http://www.hirax.net/mobile/content/8754
+- 密度汎関数法・分子力場計算
+- 有限要素法 アルゴリズムとプログラミング https://www.youtube.com/watch?v=nJqLA4nJosQ
+- 分子動力学 https://qiita.com/sci_Haru/items/2b9696911cf0dc29738a
+- https://qiita.com/tags/計算物理学
+- 数値相対論
+- https://twitter.com/doraneko_b1f/status/1241290303690047489
+  Linda J.S. Allen「生物数学入門―差分方程式・微分方程式の基礎からのアプローチ」を読んで差分方程式・微分方程式の勉強をしつつ、mathematical_biologyのリポジトリ（もちろんRust）を作っています。
+- https://twitter.com/yuruyurau/status/1243147033742938112?s=21
+- 高速フーリエ変換 https://caddi.tech/archives/836
+- 桂田研卒研ノート
+    - http://nalab.mind.meiji.ac.jp/~mk/labo/text/
+    - http://nalab.mind.meiji.ac.jp/~mk/labo/text/green.pdf
+- [格子ボルツマン法オープンソース Palabosについて その1](https://note.com/mmer547/n/n7ea6ba297237)
+- https://takun-physics.net/?p=4195
+- https://github.com/termoshtt/eom
+- https://twitter.com/genkuroki/status/1233657468409901056?s=21
+- https://twitter.com/cometscome_phys/status/1243848172134227970?s=21
+
+
+# YouTube 投稿用メモ
+## 追加すべきリスト
+- [YouTube: 数学・物理・プログラミング](https://www.youtube.com/watch?v=8RIrq4j8Qg0&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=1)
+
+## タイトル用サンプル
+- Rust 有限体積法 1 次元の線型移流方程式 アニメーションサンプル 数値流体解析の基礎 Visual C++とgnuplotによる圧縮性・非圧縮性流体解析
+
+## 動画コメント用サンプル
+コードは GitHub に置いてあるので興味があればどうぞ.
+
+- https://github.com/phasetr/mathcodes/
+
+対応するのは次のコードです.
+
+- https://github.com/phasetr/mathcodes/blob/master/ ここを埋める
+
+これ以外に, 数学・物理・プログラミングに関する無料の通信講座を運営しています.
+もしあなたがご興味あるなら,
+ぜひ次の通信講座ページ一覧を眺めてみてください.
+
+- https://phasetr.com/blog/2014/06/09/トップ固定記事：メルマガ・数学カフェ・その他/
+- https://phasetr.com/mthlp1/
+
+他にも YouTube で数値実験の動画を投稿しています.
+リストにしているのでこちらもぜひどうぞ.
+
+- https://www.youtube.com/playlist?list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU
+
+GitHub でもいくつかコードを公開しています.
+
+- https://github.com/phasetr/OpenFOAM
+- https://github.com/phasetr/mathcodes
+
+ぜひチャンネル登録もしてください。
+
+- https://www.youtube.com/channel/UCZ0p3rtw65Kw7BeR-hdndMw?sub_confirmation=1
