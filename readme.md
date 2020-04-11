@@ -97,6 +97,11 @@ jupyter/fundamental.ipynb を軽く眺めたら,
 次に jupyter/math_simple_graph.ipynb を見てほしい.
 あとは適当に書き進めていく.
 
+# Introduction_to_Lattice_Boltzmann_Equation
+## sample1.py
+- [参考ページ](https://www.hello-python.com/2017/04/30/格子ボルツマン法を用いた流体力学のシミュレー/)
+- [オリジナルのページ](http://physics.weber.edu/schroeder/fluids/)
+
 # visualization
 ## VTK
 - [VTK documentation](https://vtk.org/documentation/)
