@@ -99,6 +99,7 @@ jupyter/fundamental.ipynb を軽く眺めたら,
 
 # Introduction_to_Lattice_Boltzmann_Equation
 ## sample1.py
+- [YouTube](https://youtu.be/1mSGfU9hKvc)
 - [参考ページ](https://www.hello-python.com/2017/04/30/格子ボルツマン法を用いた流体力学のシミュレー/)
 - [オリジナルのページ](http://physics.weber.edu/schroeder/fluids/)
 
