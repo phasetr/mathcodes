@@ -116,6 +116,10 @@ git clean -dnX ./   # まずこれでチェック
 ```
 
 # Introduction_to_Lattice_Boltzmann_Equation
+## TODO
+- https://qiita.com/ebinan92/items/6c61f660092a970bef1a
+- https://github.com/ebinan92/Fingering_dynamics/tree/master/lattice_boltzmann
+
 ## sample1.py
 - [YouTube](https://youtu.be/1mSGfU9hKvc)
 - [参考ページ](https://www.hello-python.com/2017/04/30/格子ボルツマン法を用いた流体力学のシミュレー/)
@@ -135,7 +139,15 @@ ffmpeg で mp4 化.
 - [YouTube](https://www.youtube.com/watch?v=KGs7snpMpRw&feature=youtu.be)
 
 `ode_dynamical_system001.rs` 同様.
-これは回転.
+これは「回転」.
+
+## ode_dynamical_system004.rs
+- [YouTube](https://youtu.be/qe28I-BXsiI)
+
+`ode_dynamical_system001.rs` 同様.
+これは「鞍点」.
+可視化で新しいファイルを作らず,
+`ode_dynamical_system003_visualize.py` を転用している.
 
 # wave_eq
 ## URL メモ
