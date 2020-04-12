@@ -97,17 +97,45 @@ jupyter/fundamental.ipynb を軽く眺めたら,
 次に jupyter/math_simple_graph.ipynb を見てほしい.
 あとは適当に書き進めていく.
 
+# visualization
+## VTK
+- [VTK documentation](https://vtk.org/documentation/)
+- [データサンプル](https://vtk.org/Wiki/VTK_Datasets)
+- [CSV を読み込む](https://qiita.com/implicit_none/items/e108e0b9f30784ec719a)
+
+## Gnuplot
+- [日本語マニュアルページ](http://takeno.iee.niit.ac.jp/~foo/gp-jman/)
+- [Ver 5.5 目次](http://takeno.iee.niit.ac.jp/~foo/gp-jman/data/current/20200326/gnuplot-ja-div/index.html)
+
+# 生成した数値計算結果ファイルの削除
+次のコマンドで良さそう.
+
+```
+git clean -dnX ./   # まずこれでチェック
+# git clean -dfX ./ # 実行: 本当に消えるので実行するときは要注意
+```
+
 # Introduction_to_Lattice_Boltzmann_Equation
 ## sample1.py
 - [YouTube](https://youtu.be/1mSGfU9hKvc)
 - [参考ページ](https://www.hello-python.com/2017/04/30/格子ボルツマン法を用いた流体力学のシミュレー/)
 - [オリジナルのページ](http://physics.weber.edu/schroeder/fluids/)
 
-# visualization
-## VTK
-- [VTK documentation](https://vtk.org/documentation/)
-- [データサンプル](https://vtk.org/Wiki/VTK_Datasets)
-- [CSV を読み込む](https://qiita.com/implicit_none/items/e108e0b9f30784ec719a)
+# rust
+## ode_dynamical_system001.rs
+- [YouTube](https://www.youtube.com/watch?v=4-35rRRQS8I&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=107)
+
+[このページ](https://qiita.com/akoamay/items/50ecc312cd84596203c1)を参考にした.
+可視化は python で gnuplot を生成してその gnuplot から png 生成し,
+ffmpeg で mp4 化.
+後半にいくにつれて 10MB 程度ある csv を読み込んでは処理することになり,
+処理が重くなるので軽量化したい.
+
+## ode_dynamical_system003.rs
+- [YouTube](https://www.youtube.com/watch?v=KGs7snpMpRw&feature=youtu.be)
+
+`ode_dynamical_system001.rs` 同様.
+これは回転.
 
 # wave_eq
 ## URL メモ
@@ -124,18 +152,43 @@ jupyter/fundamental.ipynb を軽く眺めたら,
 
 初期条件は $u = 0, u_t = 0$ で,
 原点で波を $(1/2) \sin (2 \pi f t)$ で駆動していて,
-次のように離散化している.
+離散化については `math_memo.lyx` を見ること.
 
-\begin{align}
-u(t + \Delta t, x) =
-2 u(t,x) - u(t - \Delta t, x)
-+ \left( \frac{\Delta t}{\Delta x} \right)^2 (u(t,x + \Delta x) - 2 u(t,x) + u(t,x)).
-\end{align}
+### 調整中 1dim_wave_eq_only_u_with_src.rs
+`1dim_wave_eq_only_u.rs` では `u` を直接動かしているが,
+こちらは外力 `f` で駆動しようとしている.
+振幅が異様に小さく, なぜうまくいかないかまだわかっていない.
+
+### 1dim_wave_eq_pml_both_side.rs
+`1dim_wave_eq_only_u.rs` と同じ条件で波を生成している.
+両端に PML をつけていて反射が起きない.
 
 ### 1dim_wave_eq_pml_both_side_compare.rs
 - [YouTube へのリンク](https://www.youtube.com/watch?v=2lwbDbXS5NE&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=100)
 
-PML の有無を比較している.
+`1dim_wave_eq_pml_both_side.rs` に対して PML なしの波も追加した.
+PML の有無での挙動を比較している.
+
+### 1dim_wave_eq_pml_processing.rs
+- [Youtube へのリンク](https://www.youtube.com/watch?v=pwHatoXioR8&feature=youtu.be)
+
+[Qiita: Processingでシミュレーション～境界付近で波を消す](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)にある processing のコード,
+`processing/sketch_1dim_wave_eq_pml.pde` を直接移植したコード.
+左端で駆動していて領域中央の `cnf.nx / 2` から吸収壁が始まる.
+
+元ネタはおそらく次の英語のノート.
+
+- [Steven G. Johnson, Notes on Perfectly Matched Layers (PMLs)](https://math.mit.edu/~stevenj/18.369/pml.pdf)
+
+PML は変則的な 1 階化を使う.
+これは `math_memo.lyx` にまとめた.
+勘違いしないようにドキュメントをよく読んで注意すること.
+
+### 1dim_wave_eq_pml_right_wall.rs
+- [Youtube 動画](https://www.youtube.com/watch?v=qJapxtwSR3k)
+
+`1dim_wave_eq_pml_processing.rs` と原則同じ.
+こちらは右端の 5 層の小領域で一気に吸収させている.
 
 ### 1dim_wave_eq_u_ut.rs
 - [Youtube へのリンク](https://www.youtube.com/watch?v=ILb9vJI6uQg&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=88&t=0s)
@@ -148,72 +201,21 @@ PML の有無を比較している.
 u_t = v, \quad v_t = u_{xx}.
 \end{align}
 
-[黒木さんからの指摘](https://twitter.com/genkuroki/status/1245037226284552199)を受け,
-次のように離散化する.
-
-まず大元の波動方程式を次のように離散化する.
-
-\begin{align}
-\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} &=
-\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}.
-\end{align}
-
-ここで $v(t,x)=\frac{u(t,x)-u(t-\text{\ensuremath{\Delta t,x)}}}{\Delta t}$ と書くことにすると,
-上の差分化は次のように書き直せる.
-
-\begin{align}
-\frac{v(t+\Delta t,x)-v(t,x)}{\Delta t} & =
-\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}},\\
-u(t,x) & =
-u(t-\Delta t,x)+v(t,x)\Delta t.
-\end{align}
-
-これをさらに次のように書き直し,
-最終的に次の離散化で計算する.
-
-\begin{align}
-v(t+\Delta t,x) &=
-v(t,x)+\frac{u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x)}{(\Delta x)^{2}}\Delta t,\\
-u(t+\Delta t,x) &=
-u(t,x)+v(t+\Delta t,x)\Delta t.
-\end{align}
-
-#### まずい離散化メモ
-はじめに実装していたバージョン.
-記録のために残しておく.
-
-> これを次のように離散化した.
->
-> \begin{align}
-> u(t + \Delta t, x) &=
-> u(t, x) + v(t, x) \Delta t, \\
-> v(t + \Delta t, x) &=
-> v(t, x) + \frac{u(t, x - \Delta x) - 2 u(t,x) + u(t, x + \Delta x)}{(\Delta x)^2} \Delta t.
-> \end{align}
-
-### 1dim_wave_eq_pml_processing.rs
-- [Youtube へのリンク](https://www.youtube.com/watch?v=pwHatoXioR8&feature=youtu.be)
-
-[このページ](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)にある processing のコード,
-`processing/sketch_1dim_wave_eq_pml.pde` を直接移植したコード.
-左端で振動を駆動させていて,
-領域中央の `cnf.nx / 2` から吸収壁が始まる.
-
-PML は変則的な 1 階化を使う.
-これは `math_memo.lyx` にまとめた.
-勘違いしないようにドキュメントをよく読んで注意すること.
-
-### 1dim_wave_eq_pml_right_wall.rs
-- [Youtube 動画](https://www.youtube.com/watch?v=qJapxtwSR3k)
-
-`1dim_wave_eq_pml_processing.rs` では吸収壁は領域中央からはじまっていたのを右端
-5 層に押し込めた.
-
-### 1dim_wave_eq_u_ut_pml.rs
-- [波動方程式の PML 参考](https://qiita.com/tobira-code/items/bd62daa19c42ba169cf2)
-
 ### 1dim_wave_eq_u_ut_with_src.rs
 - [YouTube へのリンク](https://www.youtube.com/watch?v=G0-1apiHiog&feature=youtu.be)
+
+ふつうの 1 階化方程式で波源を中央につけた.
+
+### 1dim_wave_eq_u_ut_with_src_pml.rs
+波源と PML を両方つけた.
+比較用に PML なしの近似解も計算している.
+
+`math_memo.lyx` にある離散化の注意を守りつつ,
+内部領域と PML 領域で解く方程式を変えている.
+定式化については `math_memo.lyx` を見ること.
+
+### 1dim_wave_eq_u_ut_with_src_pml_nonzero_bdval.rs
+境界値を 0 からずらしてうまくいくかどうか検証した.
 
 ### 2dim_wave_eq_only_u.rs
 - [YouTube 動画](https://www.youtube.com/watch?v=Wl5gEDZ-bgU)
@@ -280,7 +282,8 @@ Python または Rust でコードを書いて貯めたい.
 - https://github.com/termoshtt/eom
 - https://twitter.com/genkuroki/status/1233657468409901056?s=21
 - https://twitter.com/cometscome_phys/status/1243848172134227970?s=21
-
+- http://www.tsunami.civil.tohoku.ac.jp/hokusai3/J/shibu/19/araki.pdf
+- 有限体積法の解説：https://qiita.com/ur_kinsk/items/03e8e20c51a434e50c9c
 
 # YouTube 投稿用メモ
 ## 追加すべきリスト
