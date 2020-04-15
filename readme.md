@@ -106,6 +106,7 @@ jupyter/fundamental.ipynb を軽く眺めたら,
 ## Gnuplot
 - [日本語マニュアルページ](http://takeno.iee.niit.ac.jp/~foo/gp-jman/)
 - [Ver 5.5 目次](http://takeno.iee.niit.ac.jp/~foo/gp-jman/data/current/20200326/gnuplot-ja-div/index.html)
+- [Melting Rabbit's Blog](https://meltingrabbit.com/blog/article/2017101103/)
 
 # 生成した数値計算結果ファイルの削除
 次のコマンドで良さそう.
@@ -116,6 +117,29 @@ git clean -dnX ./   # まずこれでチェック
 ```
 
 # Introduction_to_Lattice_Boltzmann_Equation
+- [本へのリンク](https://www.maruzen-publishing.co.jp/item/?book_no=303613)
+- [本のソースコードへのリンク](https://www.maruzen-publishing.co.jp/info/n19667.html)
+    - パスワード入力しないとソースコードが取れないようになっているので,
+      リポジトリにはコミットしない.
+
+## 目標
+適当なタイミングで[現代数学探険隊](https://phasetr.com/mtexpdf1/)のプログラミング編を作りたい.
+そのための勉強.
+
+## メモ
+- 非圧縮性粘性流体の数値計算法.
+- 非圧縮粘性流体の特徴: 圧力を求める発展方程式がなく, 連続の式をみたす圧力をどう求めるか?
+- 歴史的には各時刻で圧力のポアソン方程式を解く.
+    - これに時間がかかる.
+- 格子ボルツマン法 (Lattice Boltzmann Method, LBM)
+    - 流体を微視的立場から捉える分子運動論を基礎にする
+    - 格子気体モデル: 流体を速度をもつ有限個の仮想粒子の集合で近似する
+    - 各粒子の衝突と並進を粒子の速度分布関数で逐次計算する
+    - 速度分布関数のモーメントから巨視的流れ場を求める
+    - 複雑な流れ場に対してもアルゴリズムが簡単
+    - 質量・運動量の保存性がいい
+    - 並列計算に適している
+
 ## TODO
 - https://qiita.com/ebinan92/items/6c61f660092a970bef1a
 - https://github.com/ebinan92/Fingering_dynamics/tree/master/lattice_boltzmann
@@ -126,6 +150,9 @@ git clean -dnX ./   # まずこれでチェック
 - [オリジナルのページ](http://physics.weber.edu/schroeder/fluids/)
 
 # rust
+## 参考ページ
+- [カオス＆非線形力学入門](https://brain.cc.kogakuin.ac.jp/~kanamaru/Chaos/)
+
 ## ode_dynamical_system001.rs
 - [YouTube](https://www.youtube.com/watch?v=4-35rRRQS8I&list=PLSBzltjFopraTJUYDMXnj1GdYCdR0QyzU&index=107)
 
@@ -148,6 +175,34 @@ ffmpeg で mp4 化.
 これは「鞍点」.
 可視化で新しいファイルを作らず,
 `ode_dynamical_system003_visualize.py` を転用している.
+
+## ode_dynamical_system005.rs
+- [YouTube へのリンク](https://www.youtube.com/watch?v=1kAr9MRBViY)
+
+これは「不安定節」.
+可視化は Python に切り替えた.
+いまの出力データ法からすると Gnuplot より Matplotlib を使う方がいい模様.
+
+## ode_dynamical_system006.rs
+- [YouTube へのリンク: Rust 2次元力学系平衡点の美的可視化 Matplotlib・ffmpeg Qiitaから]()
+
+これは「安定節」.
+
+## ode_dynamical_system007.rs, ode_dynamical_system008.rs
+うまく参考サイトのような図が描けなかった.
+何が悪いのだろう?
+
+## ode_van_der_pol.rs
+- [YouTube へのリンク](https://youtu.be/IfTOWi1SAkM)
+- math_memo.lyx に式と離散化メモあり
+
+可視化は Gnuplot でやろうと思ったが,
+方程式の解とベクトル場を同時に表示させられず断念した.
+Gnuplot の方が速そうなので, Gnuplot で何とかできるようになりたい.
+
+## ode_fitzhugh_nagumo.rs
+- math_memo.lyx に式と離散化メモあり
+- 予備考察として python 版を実行する
 
 # wave_eq
 ## URL メモ

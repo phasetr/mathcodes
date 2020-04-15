@@ -5,12 +5,23 @@
 \save_transient_properties true
 \origin unavailable
 \textclass jsbook
-\use_default_options true
+\begin_preamble
+%% \usepackage{my}
+\usepackage{hyperref}
+\hypersetup{pdfencoding=auto,unicode=false}
+\usepackage{pxjahyper}
+\end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+theorems-ams-extended
+eqs-within-sections
+\end_modules
 \maintain_unincluded_children false
-\language english
+\language japanese
 \language_package default
-\inputencoding auto
-\fontencoding global
+\inputencoding utf8-platex
+\fontencoding T1
 \font_roman "default" "default"
 \font_sans "default" "default"
 \font_typewriter "default" "default"
@@ -23,15 +34,24 @@
 \font_tt_scale 100 100
 \use_microtype false
 \use_dash_ligatures true
-\graphics default
+\graphics dvipdfmx
 \default_output_format default
 \output_sync 0
 \bibtex_command default
 \index_command default
 \paperfontsize default
 \spacing single
-\use_hyperref false
-\papersize default
+\use_hyperref true
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder false
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize a5paper
 \use_geometry false
 \use_package amsmath 1
 \use_package amssymb 1
@@ -66,7 +86,7 @@
 \quotes_style english
 \dynamic_quotes 0
 \papercolumns 1
-\papersides 1
+\papersides 2
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
@@ -121,6 +141,542 @@
 \end_layout
 
 \begin_layout Part
+常微分方程式
+\end_layout
+
+\begin_layout Chapter
+一般論
+\end_layout
+
+\begin_layout Section
+記号・記法
+\end_layout
+
+\begin_layout Standard
+ふつう常微分方程式では時間微分をドット、つまり
+\begin_inset Formula $\dot{x}$
+\end_inset
+
+で表す。しかしここではタイプセットが面倒なので偏微分方程式と同じ
+\begin_inset Formula $x_{t}$
+\end_inset
+
+を使うことにする。この記法を使うと正規形の常備分方程式は 
+\begin_inset Formula $x_{t}=f(t,x(t))$
+\end_inset
+
+ と書ける。
+\end_layout
+
+\begin_layout Section
+2 階の方程式の 1 階化
+\end_layout
+
+\begin_layout Subsection
+連続時間
+\end_layout
+
+\begin_layout Standard
+高階でも同じように書けるが、ここでは面倒なので 2 階に特化して書く。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $y=x_{t}$
+\end_inset
+
+と書くことにすると、2 階の方程式 
+\begin_inset Formula $x_{tt}=f(t,x,x_{t})$
+\end_inset
+
+は次のように書ける。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+y_{t} & =f(t,x,y),\\
+x_{t} & =y.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+離散時間
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:one-order"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+常微分方程式 
+\begin_inset Formula $x_{tt}=f(t,x,x_{t})$
+\end_inset
+
+ は次のように離散化できる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\frac{\frac{x(t+\Delta t)-x(t)}{\Delta t}-\frac{x(t)-x(t-\Delta t)}{\Delta t}}{\Delta t} & =f\left(t,x,x_{t}\right).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ここで
+\begin_inset Formula $y(t)=\frac{x(t)-x(t-\text{\ensuremath{\Delta t)}}}{\Delta t}$
+\end_inset
+
+として上記離散化方程式に代入すると、次の連立方程式が得られる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\frac{y(t+\Delta t)-y(t)}{\Delta t} & =f(t,x,y),\\
+x(t) & =x(t-\Delta t)+y(t,x)\Delta t.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+整理すると次の2組の連立方程式が得られる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+y(t+\Delta t) & =y(t)+f\left(t,x(t),x_{t}(t)\right)\Delta t,\\
+x(t+\Delta t) & =x(t)+y(t+\Delta t)\Delta t.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+ルンゲ-クッタ化
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:runge-kutta"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+上で 
+\begin_inset Formula $t+\Delta t$
+\end_inset
+
+とした部分を
+\begin_inset Formula $n+1$
+\end_inset
+
+ステップとみなせば、方程式 
+\begin_inset Formula $x_{t}=f\left(t,x\right)$
+\end_inset
+
+はルンゲ-クッタ法では次のように書ける。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+k_{1} & =f\left(t_{n},x_{n}\right),\\
+k_{2} & =f\left(t_{n}+\frac{\Delta t}{2},x_{n}+\frac{\Delta t}{2}k_{1}\right),\\
+k_{3} & =f\left(t_{n}+\frac{\Delta t}{2},x_{n}+\frac{\Delta t}{2}k_{2}\right),\\
+k_{4} & =f\left(t_{n}+\Delta t,x_{n}+\Delta t\cdot k_{3}\right),\\
+x_{n+1} & =x_{n}+\frac{\Delta t}{6}\left(k_{1}+2k_{2}+2k_{3}+k_{4}\right).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Chapter
+いろいろな方程式
+\end_layout
+
+\begin_layout Section
+フィッツヒュー・南雲（FitzHugh-Nagumo）方程式
+\end_layout
+
+\begin_layout Subsection
+参考
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "フィッツヒュー・南雲 (FitzHugh-Nagumo) 方程式"
+target "https://brain.cc.kogakuin.ac.jp/~kanamaru/Chaos/FN/"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+このページから方程式の説明を引用する。
+\end_layout
+
+\begin_layout Quotation
+生体の脳はニューロンとよばれる神経細胞によって構成されています。 このページのシミュレータは、そのニューロンの定性的な振る舞いをモデル化した FitzHugh-
+Nagumo 方程式をシミュレートしたものです。
+\end_layout
+
+\begin_layout Quotation
+u、v の二つの変数がありますが、この内 u がニューロンの膜電位、 すなわち、出力に相当します。I(t) はニューロンへ加わる外部入力で、 ここでは「周期パル
+ス」であるとします (後述)。 a、b、c はパラメータであり、ここでは a=0.7、b=0.8、c=10 に固定します。
+\end_layout
+
+\begin_layout Quotation
+ニューロンのダイナミクスを電気生理学的にモデル化したものとしては ホジキン・ハックスレー (Hodgkin-Huxley) 方程式 が有名です。
+ ホジキンとハックスレーはヤリイカの巨大軸索の神経膜の活動を調べ、 4 次元の微分方程式を書き下しました。 この研究により彼らは 1963 年のノーベル生理学賞
+を受賞しています。
+\end_layout
+
+\begin_layout Quotation
+このモデルは現在も精緻化が進められ、ニューロン一素子の振る舞いを 多くの変数を取り込んだ微分方程式により詳細にモデリングできるようになりました。
+ このように、モデルの精密化を指向する研究と平行して、 モデルの本質のみを抽出して簡単化しようという流れもあり、 その代表例がこの FitzHugh-Nagum
+o 方程式です。 FitzHugh-Nagumo 方程式は、4 次元のホジキン・ハックスレー方程式の「本質」が 2 次元で表現されるように簡単化したモデルと言え
+ます (どちらもタイプ II と呼ばれるニューロンモデルです)。
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "FitzHugh-Nagumo方程式"
+target "http://www.chem.scphys.kyoto-u.ac.jp/nonnonWWW/b8/07f/majima/majima.pdf"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+\begin_inset Formula $I(t)$
+\end_inset
+
+ を入れるときは 
+\begin_inset Formula $z=t$
+\end_inset
+
+ を考えて自励系にするといい？
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "パターン・ダイナミクスの数理モデリングとシミュレーション"
+target "https://www.riam.kyushu-u.ac.jp/fluid/meeting/18ME-S5/papers/Article_No_08.pdf"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "反応拡散方程式の概説および FitzHugh-Nagumo方程式に関する補足資料"
+target "http://sitmathclub.web.fc2.com/seisaku/shibasai2015/paper/nagase_p.pdf"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "神経を伝わる電気信号を数式に：ホジキン-ハクスリー方程式"
+target "https://math-fun.net/20190803/2559/"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+つまり、静止状態 
+\begin_inset Formula $(u,v)=(0,0)$
+\end_inset
+
+ にちょっとした変化が起こっても静止したままですが、大きな変化を与えればパルス波の方に近づいていく現象が起こっているわけです。
+\end_layout
+
+\begin_layout Itemize
+これは全か無かの法則（all-or-none principle）と呼ばれるもの。
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "FitzHugh-Nagumoモデルをアニメーションで見る"
+target "https://omedstu.jimdofree.com/2018/06/21/fitzhugh-nagumo%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E3%82%A2%E3%83%8B%E3%83%A1%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%E3%81%A7%E8%A6%8B%E3%82%8B/"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Python コードがあるので、まずはこれで遊んでみよう。
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "pythonを使ってFitzHugh南雲方程式のnullclineを描く"
+target "http://swdrsker.hatenablog.com/entry/2017/04/20/052023"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+同じくこれも Python コードがあるので遊んでみる。
+\end_layout
+
+\end_deeper
+\begin_layout Subsection
+連続版
+\end_layout
+
+\begin_layout Standard
+次の連立常微分方程式をフィッツヒュー・南雲方程式と呼ぶ。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & =c\left(u-\frac{u^{3}}{3}-v+I(t)\right),\\
+v_{t} & =u-bv+a.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これは
+\begin_inset Formula $a=b=0$
+\end_inset
+
+でファン-デル-ポル方程式帰着する。
+\end_layout
+
+\begin_layout Subsection
+差分化
+\end_layout
+
+\begin_layout Standard
+次のように離散化する。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+y(t+\Delta t) & =y(t)+\Delta t\left(\mu\left(1-x(t)^{2}\right)y(t)-x(t)\right),\\
+x(t+\Delta t) & =x(t)+\Delta t\cdot y(t+\Delta t).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+１ 階化したときの離散化については
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:one-order"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+節を参照すること。さらにこれをルンゲ-クッタ化する。ルンゲ-クッタ法は
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:runge-kutta"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+節を参考にすること。
+\end_layout
+
+\begin_layout Section
+ファン-デル-ポル (van der Pol) 方程式
+\end_layout
+
+\begin_layout Subsection
+参考
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "非線形力学系における相空間上のベクトル場を可視化"
+target "https://qiita.com/g_rej55/items/8f1fabb6b4bad615bbe5"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "Wikipedia"
+target "https://ja.wikipedia.org/wiki/%E3%83%95%E3%82%A1%E3%83%B3%E3%83%BB%E3%83%87%E3%83%AB%E3%83%BB%E3%83%9D%E3%83%BC%E3%83%AB%E6%8C%AF%E5%8B%95%E5%AD%90"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Wikipedia から歴史の部分を引用する。
+\end_layout
+
+\begin_layout Quotation
+ファン・デル・ポール振動子は、オランダの電気工学者で物理学者でもあるen:Balthasar van der Polにより提案[1]された。彼は、真空管を使用し
+た電気回路内に安定な振動を発見し、これを緩和振動と呼んだ[2]。この振動は現在リミットサイクルとして知られており、この回路をリミットサイクルの近傍で動作させると
+回路は引き込み現象をおこす。ファン・デル・ポルと同僚のvan der Markは、1927年のネイチャー9月号[3]にて、特定の動作周波数で不規則なノイズが聞こ
+えると報告した。この不規則なノイズは常に引き込み周波数の近傍で聞かれた。これは決定論的カオスの最初の発見例のひとつである。[4]
+\end_layout
+
+\begin_layout Quotation
+ファン・デル・ポル方程式は、物理学と生物学の分野で長い間使用されている。例えば、生物学では Fitzhugh[5]と南雲[6] は方程式を拡張し、神経細胞の活動
+電位に関するフィッツフュー-南雲モデルを構成した。また、地震学において断層のモデル化にも使用されている。[7]
+\end_layout
+
+\begin_layout Subsection
+連続版
+\end_layout
+
+\begin_layout Standard
+次の方程式をファン-デル-ポルの方程式と呼ぶ。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\ddot{x}-\mu\left(1-x^{2}\right)\dot{x}+x & =0.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+これは 
+\begin_inset Formula $\dot{x}=y$
+\end_inset
+
+として次のように １ 階化できる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\dot{y} & =\mu\left(1-x^{2}\right)y-x,\\
+\dot{x} & =y.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+差分化
+\end_layout
+
+\begin_layout Standard
+次のように離散化する。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+y(t+\Delta t) & =y(t)+\Delta t\left(\mu\left(1-x(t)^{2}\right)y(t)-x(t)\right),\\
+x(t+\Delta t) & =x(t)+\Delta t\cdot y(t+\Delta t).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+１ 階化したときの離散化については
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:one-order"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+節を参照すること。さらにこれをルンゲ-クッタ化する。ルンゲ-クッタ法は
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:runge-kutta"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+節を参考にすること。
+\end_layout
+
+\begin_layout Part
 波動方程式
 \end_layout
 
@@ -155,7 +711,11 @@ name "subsec:waveeq003"
 \end_layout
 
 \begin_layout Standard
-面倒なので 1 次元で考える。もとの波動方程式は次のように離散化できる。
+面倒なので 1 次元で考える。もとの波動方程式
+\begin_inset Formula $u_{tt}=c^{2}u_{xx}$
+\end_inset
+
+は次のように離散化できる。
 \end_layout
 
 \begin_layout Standard
@@ -194,7 +754,11 @@ u(t+\Delta t,x) & =2u(t,x)-u(t-\Delta t,x)\\
 \begin_inset Formula $u(t-\Delta t,x)$
 \end_inset
 
-が入っていることで、1 つ前の時間のデータも持っておかなくてはならない。
+が入っていることで、1 つ前の時間のデータも持っておかなくてはならない。次の一階化では
+\begin_inset Formula $v=u_{t}$
+\end_inset
+
+の初期値の形で２つのデータを持たせている。
 \end_layout
 
 \begin_layout Subsection
@@ -225,6 +789,15 @@ v_{t} & =c^{2}u_{xx}
 
 \begin_layout Standard
 これの離散化を考えよう：きちんと考えないとおかしな離散化になってしまい、不安定化してしまう。
+\begin_inset CommandInset href
+LatexCommand href
+name "黒木さんからの指摘"
+target "https://twitter.com/genkuroki/status/1245037226284552199"
+literal "false"
+
+\end_inset
+
+を受け、次のように離散化した。
 \end_layout
 
 \begin_layout Standard
@@ -598,14 +1171,22 @@ literal "false"
 \end_layout
 
 \begin_layout Section
+1 次元の波源なし PML
+\end_layout
+
+\begin_layout Standard
+まずは波源がない場合の PML を考える。
+\end_layout
+
+\begin_layout Subsection
 特殊な 1 階化
 \end_layout
 
 \begin_layout Standard
-上で書いたのとは違う 1 階化を使うのがポイント。以下で詳しく説明する。
+ふつうの 1 階化とは違う 1 階化を使うのがポイント。以下で詳しく説明する。
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection
 結論
 \end_layout
 
@@ -661,7 +1242,23 @@ w_{t} & =u_{x}-\sigma w.
 を挿入した形になっている。
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Standard
+関数
+\begin_inset Formula $w$
+\end_inset
+
+は正体不明だが、初期条件は
+\begin_inset Formula $w(0,x)=0$
+\end_inset
+
+として計算する：これは
+\begin_inset Formula $u(0,x)=0,u_{t}(0,x)=0$
+\end_inset
+
+で外力で波を駆動したときに実際に使った条件だが、一般的にこの条件でいいかはわかっていない。うまくいかない場合はきちんと検討する必要がある。
+\end_layout
+
+\begin_layout Paragraph
 吸収壁の具体例
 \end_layout
 
@@ -719,7 +1316,7 @@ w_{t} & =u_{x}-\sigma w.
 は 2-3 を取ることが多いようだが、きちんと吸収してくれれば何でも構わない。
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection
 連続系の 1 階化
 \end_layout
 
@@ -758,12 +1355,12 @@ u_{tt} & =\partial_{t}\partial_{t}u=c^{2}\partial_{t}\partial_{x}w=\partial_{x}\
 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection
 結論の差分方程式
 \end_layout
 
 \begin_layout Standard
-結論から書くと、次のように離散化するとうまく連続系を離散化できる。
+結論から書くと、次のように定式化すればうまく連続系を離散化できる。
 \end_layout
 
 \begin_layout Standard
@@ -785,7 +1382,7 @@ w_{t} & =u_{x}\Rightarrow\frac{w(t,x)-w(t-\Delta t,x)}{\Delta t}=\frac{u(t,x+\De
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-u(t+\Delta t,x) & =u(t,x)+\frac{c^{2}\Delta t}{\Delta x}(w(t,x)-w(t,-\Delta x),\\
+u(t+\Delta t,x) & =u(t,x)+\frac{c^{2}\Delta t}{\Delta x}\left(w(t,x)-w(t,-\Delta x)\right),\\
 w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x)\right).
 \end{align*}
 
@@ -801,8 +1398,10 @@ w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-u(t+\Delta t,x) & =u(t,x)+\frac{c^{2}\Delta t}{\Delta x}(w(t,x)-w(t,-\Delta x)-\Delta t\cdot\sigma(x)u(t,x),\\
-w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x)\right)-\Delta t\cdot\sigma(x)w(t,x).
+u(t+\Delta t,x) & =u(t,x)+\frac{c^{2}\Delta t}{\Delta x}\left(w(t,x)-w(t,-\Delta x)\right)\\
+ & \quad-\sigma(x)u(t,x),\\
+w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x)\right)\\
+ & \quad-\sigma(x)w(t,x).
 \end{align*}
 
 \end_inset
@@ -810,7 +1409,56 @@ w(t+\Delta t,x) & =w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x
 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Standard
+PML 領域については次のように書いた方がイメージしやすいだろう。
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula 
+\begin{align*}
+u(t+\Delta t,x) & =(1-\sigma(x))u(t,x)+\frac{c^{2}\Delta t}{\Delta x}\left(w(t,x)-w(t,-\Delta x)\right),\\
+w(t+\Delta t,x) & =(1-\sigma(x))w(t,x)+\frac{\Delta t}{\Delta x}\left(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x)\right).
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ポイントは次の通り。
+\end_layout
+
+\begin_layout Itemize
+連続系で
+\begin_inset Formula $u_{t}=c^{2}w_{x}-\sigma u$
+\end_inset
+
+だから吸収項 
+\begin_inset Formula $\sigma(x)u(t,x),\sigma(x)w(t,x)$
+\end_inset
+
+ に 
+\begin_inset Formula $\Delta t$
+\end_inset
+
+ をかけたくなってしまうが、かけてはいけない。かけてしまうと減衰しない。PML 領域では 
+\begin_inset Formula $u(t,x)$
+\end_inset
+
+ を徐々に 
+\begin_inset Formula $u_{0}$
+\end_inset
+
+ （境界値）に置き換えるのが吸収処理である。（ここでは
+\begin_inset Formula $u_{0}=0$
+\end_inset
+
+にしている。）
+\end_layout
+
+\begin_layout Subsubsection
 差分方程式の正当化
 \end_layout
 
@@ -862,7 +1510,8 @@ noprefix "false"
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-\frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t} & =c^{2}\frac{\frac{w(t,x)-w(t,x-\Delta x)}{\Delta x}-\frac{w(t-\Delta t,x)-w(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(\ensuremath{u_{t}=c^{2}w_{x}\text{の\text{離\text{散\text{化}}}}})}\\
+ & \frac{\frac{u(t+\Delta t,x)-u(t,x)}{\Delta t}-\frac{u(t,x)-u(t-\Delta t,x)}{\Delta t}}{\Delta t}\\
+ & =c^{2}\frac{\frac{w(t,x)-w(t,x-\Delta x)}{\Delta x}-\frac{w(t-\Delta t,x)-w(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(\ensuremath{u_{t}=c^{2}w_{x}\text{の\text{離\text{散\text{化}}}}})}\\
  & =c^{2}\frac{\frac{w(t,x)-w(t-\Delta t,x)}{\Delta x}-\frac{w(t,x-\Delta x)-w(t-\Delta t,x-\Delta x)}{\Delta x}}{\Delta t}\quad\text{(単純な式変形)}\\
  & =c^{2}\frac{\frac{w(t,x)-w(t-\Delta t,x)}{\Delta t}-\frac{w(t,x-\Delta x)-w(t-\Delta t,x-\Delta x)}{\Delta t}}{\Delta x}\quad\text{(分母の\ensuremath{\Delta t\text{と\ensuremath{\Delta x}を交換)}}}\\
  & =c^{2}\frac{\frac{u(t,x+\Delta x)-u(t,x)}{\Delta x}-\frac{u(t,x)-u(t,x-\Delta x)}{\Delta x}}{\Delta x}\quad\text{\ensuremath{(w_{t}=u_{x}\text{の離散化を代入)}}}\\
@@ -875,6 +1524,193 @@ noprefix "false"
 \end_layout
 
 \begin_layout Section
+波源つきの吸収壁
+\end_layout
+
+\begin_layout Standard
+一般に内部領域には波源がある。前節の結果を受け、波源がある場合の吸収壁つき波動方程式の実装を検討する。
+\end_layout
+
+\begin_layout Subsection
+連続系
+\end_layout
+
+\begin_layout Standard
+単純に方程式を切り替えて使えばいい（はず）で、次のように定式化する。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\begin{cases}
+v_{t} & =u_{xx}+f,\\
+u_{t} & =v,\\
+w_{t} & =u_{x}-\sigma w,
+\end{cases} & \quad(\text{内部領域})\\
+\begin{cases}
+u_{t} & =w_{x}-\sigma u,\\
+w_{t} & =u_{x}-\sigma w.
+\end{cases} & \quad(\text{PML 領域})
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+内部領域では
+\begin_inset Formula $\sigma=0$
+\end_inset
+
+なので、内部領域での
+\begin_inset Formula $w_{t}$
+\end_inset
+
+に関する方程式は実質
+\begin_inset Formula $w_{t}=u_{x}$
+\end_inset
+
+である。PML 領域で 
+\begin_inset Formula $v_{t}$
+\end_inset
+
+を考えるべきかどうかはよくわかっていない。実際の離散化検討プログラムでは次のように実装している。離散化するとき吸収項の処理には注意が必要で、それは離散化のところ
+でコメントする。
+\end_layout
+
+\begin_layout Subsection
+離散化
+\end_layout
+
+\begin_layout Standard
+ふつうの一階化・PMLの処理を組み合わせて次のように離散化して実装してある：対応するプログラムがどれかは readme.md で確認すること。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+\begin{cases}
+v(t+\Delta t,x) & =v(t,x)\\
+ & \quad+\frac{\Delta t}{(\Delta x)^{2}}(u(t,x+\Delta x)-2u(t,x)+u(t,x-\Delta x))\\
+ & \quad+f(t,x)\Delta t,\\
+u(t+\Delta t,x) & =u(t,x)+\Delta t\cdot v(t+\Delta t,x),\\
+w(t+\text{\ensuremath{\Delta t,x)}} & =w(t,x)+\frac{\Delta t}{\Delta x}(u(t+\Delta t,x+\Delta x)-u(t+\Delta t,x))\\
+ & \quad-\sigma(x)w(t,x),
+\end{cases} & (\text{内部領域})\\
+\begin{cases}
+u(t+\Delta t,x) & =u(t,x)+\frac{\Delta t}{\Delta x}(w(t,x)-w(t,x-\Delta x))\\
+ & \quad-\sigma(x)\left(u(t,x)-u_{0}\right),\\
+w(t+\text{\ensuremath{\Delta t,x)}} & =w(t,x)+\frac{\Delta t}{\Delta x}(u(t+\Delta t,\Delta x)-u(t+\Delta t,x))\\
+ & \quad-\sigma(x)w(t,x).
+\end{cases} & (\text{PML 領域})
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+PML 領域については次のように書いた方がイメージが明確になるかもしれない。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+\begin{cases}
+u(t+\Delta t,x) & =\left(1-\sigma(x)\right)u(t,x)+\sigma(x)u_{0}\\
+ & \quad+\frac{\Delta t}{\Delta x}(w(t,x)-w(t,x-\Delta x)),\\
+w(t+\text{\ensuremath{\Delta t,x)}} & =(1-\sigma(x))w(t,x)\\
+ & \quad+\frac{\Delta t}{\Delta x}(u(t+\Delta t,\Delta x)-u(t+\Delta t,x)).
+\end{cases} & (\text{PML 領域})\label{eq:math_memo0001}
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ここで 
+\begin_inset Formula $\sigma(x)$
+\end_inset
+
+ は減衰の係数で、
+\begin_inset Formula $u_{0}$
+\end_inset
+
+は設定したい境界の値である。実装のポイントは次の通り。
+\end_layout
+
+\begin_layout Itemize
+波源なしの PML と違って内部領域では 
+\begin_inset Formula $w$
+\end_inset
+
+を使わないが、
+\begin_inset Formula $w$
+\end_inset
+
+は並行して解いておく。
+\end_layout
+
+\begin_layout Itemize
+PML 領域では 
+\begin_inset Formula $u$
+\end_inset
+
+ は 
+\begin_inset Formula $w$
+\end_inset
+
+から解く。
+\end_layout
+
+\begin_layout Itemize
+吸収項 
+\begin_inset Formula $\sigma(x)u(t,x),\sigma(x)w(t,x)$
+\end_inset
+
+ に 
+\begin_inset Formula $\Delta t$
+\end_inset
+
+ をかけてはいけない。かけてしまうと減衰しない。これについては書き直した式
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:math_memo0001"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+を見た方がイメージしやすいだろう。もともとの値 
+\begin_inset Formula $u$
+\end_inset
+
+ を徐々に小さくして 
+\begin_inset Formula $u_{0}$
+\end_inset
+
+ に置き換えていくように調整するのが吸収処理だからだ。補助関数 
+\begin_inset Formula $w$
+\end_inset
+
+ についても同じ対応が必要である。
+\end_layout
+
+\begin_layout Itemize
+PML 領域では
+\begin_inset Formula $v$
+\end_inset
+
+を解かなくてもいいようだが状況による可能性があり、このドキュメントを書いた時点では未検証である。例えばポテンシャルで書いた電磁場を考えるとき、きちんと考えないと
+ローレンツ条件などのゲージの制約が崩れるかもしれない。
+\end_layout
+
+\begin_layout Section
 高次元のスカラー場に対する波動方程式の吸収壁
 \end_layout
 
@@ -883,7 +1719,7 @@ noprefix "false"
 \end_layout
 
 \begin_layout Standard
-いったんソースタームなしで考える。（必要ならソースターム追加版も書く。）
+いったん波源なしで考える。（必要なら波源追加版も書く。）
 \end_layout
 
 \begin_layout Standard
@@ -961,7 +1797,7 @@ u_{t} & =c^{2}\divergence\boldsymbol{w}-\sigma u,\\
 \begin_inset Formula 
 \begin{align*}
 \frac{u(t+\text{\ensuremath{\Delta t,x,y)-u(t,x,y)}}}{\Delta t} & =c^{2}\frac{w^{1}(t,x,y)-w^{2}(t,x-\Delta x,y)}{\Delta x}\\
- & \quad+c^{2}\frac{w^{2}(t,x,y)-^{2}(t,x,y-\Delta y}{\Delta y}.
+ & \quad+c^{2}\frac{w^{2}(t,x,y)-w^{2}(t,x,y-\Delta y}{\Delta y}.
 \end{align*}
 
 \end_inset
@@ -1014,7 +1850,7 @@ w^{2}(t+\Delta t,x,y) & =w^{2}(t,x,y)\\
 \end_layout
 
 \begin_layout Standard
-ソースタームがない場合は直接この方程式を全領域で解くことで適切な
+波源がない場合は直接この方程式を全領域で解くことで適切な
 \begin_inset Formula $u$
 \end_inset
 
