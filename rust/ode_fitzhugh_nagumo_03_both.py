@@ -2,6 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import pandas as pd
 import scipy.integrate as integrate
 
 I = 0.34 #external stimulus
@@ -44,7 +45,7 @@ def update(i, I):
     global y, y0
 
     #y0の初期値の設定
-    if i ==0:
+    if i == 0:
         y0 = [u0, v0]
 
     #現在描写されているグラフを消去

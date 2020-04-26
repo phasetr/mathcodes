@@ -31,7 +31,7 @@ def main(argv = sys.argv):
         p_temp = Path(dirname)
         dirname = sorted([str(d) for d in list(p_temp.iterdir()) if d.is_dir()])[-1]
 
-    target_dir_name = dirname.split("/")[-1]
+    target_dir_name = os.path.split(dirname)[1]
     print(f"\nThe target directory is {target_dir_name}.", flush=True)
     print(datetime.datetime.now(), flush=True)
     file_names = sorted(filter(lambda x: "vf.csv" not in x, map(str, Path(dirname).glob("*.csv"))))

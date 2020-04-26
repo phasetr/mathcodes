@@ -250,6 +250,7 @@ fn main() {
             cdata.output_num += 1;
         }
     });
+    println!("python3 ode_dynamical_system002_visualize.py で可視化してください. 必要なら適当なところで処理を止めるといいでしょう.");
 }
 
 fn bound_check(cnf: &Config, cdata: &CalcData) -> bool {
