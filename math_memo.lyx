@@ -483,10 +483,10 @@ literal "false"
 
 \begin_layout Standard
 \begin_inset Formula 
-\begin{align*}
-u_{t} & =c\left(u-\frac{u^{3}}{3}-v+I(t)\right),\\
-v_{t} & =u-bv+a.
-\end{align*}
+\begin{align}
+y_{t} & =c\left(y-\frac{y^{3}}{3}-x+I(t)\right),\\
+x_{t} & =y-bx+a.
+\end{align}
 
 \end_inset
 
@@ -498,7 +498,52 @@ v_{t} & =u-bv+a.
 \begin_inset Formula $a=b=0$
 \end_inset
 
-でファン-デル-ポル方程式帰着する。
+でファン-デル-ポル方程式に帰着する。
+\end_layout
+
+\begin_layout Subsubsection
+注意
+\end_layout
+
+\begin_layout Standard
+上で参照した記事・コードでは次のように
+\begin_inset Formula $y\to u,x\to v$
+\end_inset
+
+として実装している。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & =c\left(-v+u-\frac{u^{3}}{3}+I(t)\right),\\
+v_{t} & =u-bv+a.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+上の2組の方程式で解くと
+\begin_inset Formula $x,y$
+\end_inset
+
+が入れ替わってしまい、Python と Rust コードの結果の比較がしづらいので、Python コードで実装した流儀に合わせてフィッツヒュー・南雲方程式を書く
+と次のようになる。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+x_{t} & =c\left(-y+x-\frac{x^{3}}{3}+I(t)\right)=c\left(x-\frac{x^{3}}{3}-y+I(t)\right),\\
+y_{t} & =x-by+a.
+\end{align*}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -512,8 +557,8 @@ v_{t} & =u-bv+a.
 \begin_layout Standard
 \begin_inset Formula 
 \begin{align*}
-y(t+\Delta t) & =y(t)+\Delta t\left(\mu\left(1-x(t)^{2}\right)y(t)-x(t)\right),\\
-x(t+\Delta t) & =x(t)+\Delta t\cdot y(t+\Delta t).
+y(t+\Delta t) & =y(t)+\Delta t\cdot c\left(y(t)-\frac{1}{3}y(t)^{3}-x(t)+I(t)\right),\\
+x(t+\Delta t) & =x(t)+\Delta t\cdot\left(y(t+\Delta t)-bx(t)+a\right).
 \end{align*}
 
 \end_inset
@@ -1855,6 +1900,306 @@ w^{2}(t+\Delta t,x,y) & =w^{2}(t,x,y)\\
 \end_inset
 
 が得られる。
+\end_layout
+
+\begin_layout Part
+連続体力学
+\end_layout
+
+\begin_layout Chapter
+ナビエ-ストークス方程式
+\end_layout
+
+\begin_layout Chapter
+オイラー方程式
+\end_layout
+
+\begin_layout Section
+参考文献
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "谷口, 杉原, 空間多次元Navier-Stokes方程式に対する無反射境界条件"
+target "https://www.jstage.jst.go.jp/article/nagare1982/24/1/24_1_81/_pdf/-char/ja"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset CommandInset href
+LatexCommand href
+name "参考：左固有ベクトルの定義"
+target "https://konn-san.com/math/computational-algebra-seminar/2014-01-08.pdf"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+空間1次元
+\end_layout
+
+\begin_layout Subsection
+Hedstrom の無反射境界条件
+\end_layout
+
+\begin_layout Standard
+適当な次元のベクトル値関数 
+\begin_inset Formula $u$
+\end_inset
+
+ と対角化可能な正方行列 
+\begin_inset Formula $A(u)$
+\end_inset
+
+ を取り、次の双曲型偏微分方程式を 
+\begin_inset Formula $x>0$
+\end_inset
+
+ の領域で考える。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t} & +A(u)u_{x}=0.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+このとき解が単純波であれば 
+\begin_inset Formula $x=0$
+\end_inset
+
+ で次の境界条件を取れば反射は起こらない。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+l_{j}u_{t} & =0,\quad\lambda_{j}>0.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ここで
+\begin_inset Formula $l_{j}$
+\end_inset
+
+は行列 
+\begin_inset Formula $A(u)$
+\end_inset
+
+ の固有値 
+\begin_inset Formula $\lambda_{j}$
+\end_inset
+
+ に対応する左固有ベクトルである：左固有ベクトルは
+\begin_inset Formula $l_{j}A(u)=\lambda_{j}l_{j}$
+\end_inset
+
+として定義する。
+\end_layout
+
+\begin_layout Standard
+この境界条件のアイデアは、左固有ベクトルをかけることで
+\begin_inset Formula $u$
+\end_inset
+
+のうち速度 
+\begin_inset Formula $\lambda_{j}$
+\end_inset
+
+ を持つ成分を抽出できることを使って計算領域内部に進行する波をなくすことにある。
+\end_layout
+
+\begin_layout Section
+空間2次元
+\end_layout
+
+\begin_layout Subsection
+方程式の定義
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $U=(\rho,u_{1},u_{2},s)^{T}$
+\end_inset
+
+とするとオイラー方程式は次のように書ける。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+U_{t}+A_{1}(\rho,u_{1},u_{2},s)U_{x}+A_{2}(\rho,u_{1},u_{2},s)U_{y} & =0,\label{eq:2dimeuler}\\
+A_{1}(\rho,u_{1},u_{2},s) & =\left[\begin{array}{cccc}
+u_{1} & \rho & 0 & 0\\
+c^{2}/\rho & u_{1} & 0 & p/\rho s\\
+0 & 0 & u_{1} & 0\\
+0 & 0 & 0 & u_{1}
+\end{array}\right],\\
+A_{2}(\rho,u_{1},u_{2},s) & =\left[\begin{array}{cccc}
+u_{2} & 0 & \rho & 0\\
+0 & u_{2} & 0 & 0\\
+c^{2}/\rho & 0 & u_{2} & p/\rho s\\
+0 & 0 & 0 & u_{2}
+\end{array}\right].
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ここで
+\begin_inset Formula $\rho$
+\end_inset
+
+は密度、
+\begin_inset Formula $p$
+\end_inset
+
+は圧力、
+\begin_inset Formula $u_{1},u_{2}$
+\end_inset
+
+は流速、
+\begin_inset Formula $s$
+\end_inset
+
+はエントロピーで比熱比
+\begin_inset Formula $\gamma$
+\end_inset
+
+を使って
+\begin_inset Formula $s=p\rho^{-\gamma}$
+\end_inset
+
+と書ける。さらに
+\begin_inset Formula $c$
+\end_inset
+
+は音速で
+\begin_inset Formula $c=\sqrt{\gamma p/\rho}$
+\end_inset
+
+と定義する。オイラー方程式は任意の実数
+\begin_inset Formula $\alpha_{1},\alpha_{2}$
+\end_inset
+
+に対して
+\begin_inset Formula $\alpha_{1}A_{1}+\alpha_{2}A_{2}$
+\end_inset
+
+が対角化可能であり、双曲型である。
+\end_layout
+
+\begin_layout Subsection
+Thompson の無反射境界条件
+\end_layout
+
+\begin_layout Standard
+オイラー方程式 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:2dimeuler"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ に対して境界 
+\begin_inset Formula $x=0$
+\end_inset
+
+ に対して次の境界条件を設定する。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+u_{t}+\mathcal{L}+A_{2}(u)u_{y} & =0.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ここで
+\begin_inset Formula $\mathcal{L}$
+\end_inset
+
+は
+\begin_inset Formula $u$
+\end_inset
+
+と同じ次元のベクトルで各成分は次のように定義する。
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align*}
+(\mathcal{L})_{j} & =\min{\lambda_{j},0}l_{j}u_{x}r_{j}.
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ここで
+\begin_inset Formula $r_{j},l_{j}$
+\end_inset
+
+は行列 
+\begin_inset Formula $A_{1}(u)$
+\end_inset
+
+ の固有値 
+\begin_inset Formula $\lambda_{j}$
+\end_inset
+
+ に対する右・左固有ベクトルである。
+\end_layout
+
+\begin_layout Subsection
+谷内・杉原の無反射境界条件
+\end_layout
+
+\begin_layout Subsubsection
+基本的なアイデア
+\end_layout
+
+\begin_layout Itemize
+単純派を仮定し、数値計算時に持っているデータから特性曲線の伸び方を推定する。
+\end_layout
+
+\begin_layout Itemize
+計算領域内側に伸びた特性曲線上で 
+\begin_inset Formula $du=0$
+\end_inset
+
+ とする。
 \end_layout
 
 \end_body

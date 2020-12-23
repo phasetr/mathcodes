@@ -1,4 +1,8 @@
+!readme.md
 *.gif
+*.html
 *.mp4
+.ionide
 .ipynb_checkpoints
 None0000000.png
+[0-9]*/

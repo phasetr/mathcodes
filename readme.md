@@ -2,6 +2,19 @@ I collected my scientific codes, especially math and physics.
 
 - [GitHub URL](https://github.com/phasetr/mathcodes)
 
+# 雑多な覚え書き
+## コードへのコメント
+Julia > samples > movie_0001.jl など,
+いくつかのファイルはこの readme に YouTube の対応動画へのリンクを貼っている.
+これは途中からはじめたのだが,
+わざわざ分離して readme に書くのも面倒になったので,
+ファイルに直接 URL を書くのを許すことにした.
+この目的なら gif にして Jupyter notebook を使うのも一手と思うが,
+Jupyter notebook は json で容量があり,
+差分チェックもはてしなく鬱陶しい点で, 2020-04 時点では回避している.
+
+どんなときに何をどうするといいかはいろいろ検討している.
+
 # python
 
 Jupyter がすごいのでそれを使ったコードも書いてみたい.
@@ -97,6 +110,81 @@ jupyter/fundamental.ipynb を軽く眺めたら,
 次に jupyter/math_simple_graph.ipynb を見てほしい.
 あとは適当に書き進めていく.
 
+# julia
+速くて書くのも楽というので試してみる.
+
+## Emacs Julia-Repl
+| key         | action                                                    |
+|-------------|-----------------------------------------------------------|
+| C-c C-a     | activate if there is a Project.toml in parent directories |
+| C-u C-c C-a | activate home project                                     |
+| C-c C-b     | send whole buffer to REPL (using include)                 |
+| C-u C-c C-b | send whole buffer to REPL (directly)                      |
+| C-c C-c     | send region (when applicable) or line to REPL             |
+| C-c C-d     | invoke @doc on symbol                                     |
+| C-c C-e     | invoke @edit on region (when applicable) or line          |
+| C-c C-l     | list methods of a function                                |
+| C-c C-m     | expand macro                                              |
+| C-c C-p     | change directory to that of the buffer                    |
+| C-c C-s     | prompt for buffer name suffix                             |
+| C-c C-t     | send whole buffer to REPL (using Revise.includet)         |
+| C-c C-v     | prompt for Julia executable                               |
+| C-c C-z     | raise the REPL or create a new one                        |
+| C-RET       | send line to REPL (without bracketed paste)               |
+
+## 資料メモ
+- [bicycle1885 さんによるチュートリアル](https://github.com/bicycle1885/Julia-Tutorial)
+    - [高速チュートリアル](https://github.com/bicycle1885/Julia-Tutorial/blob/master/Julia高速チュートリアル.ipynb)
+    - [クックブック](https://github.com/bicycle1885/Julia-Tutorial/blob/master/Juliaクックブック.ipynb)
+- [公式ドキュメント](https://docs.julialang.org/en/v1/)
+- [公式の高速化 tips](https://docs.julialang.org/en/v1/manual/performance-tips/#man-performance-tips-1)
+- [JuliaBox](https://juliabox.com/) を使えばブラウザさえあれば使える
+- 真っ先にこれやりたい: [Julia言語と Plots + GR で複素関数のgifアニメーションを作る](http://optie.hatenablog.com/entry/2018/03/29/210619)
+- 黒木さんの資料
+    - [入門](https://nbviewer.jupyter.org/github/genkuroki/msfd28/blob/master/msfd28genkuroki.ipynb?flush_cached=true)
+    - [Jupyter Notebooks of Gen Kuroki](https://genkuroki.github.io/documents/Jupyter/)
+    - [Gist](https://gist.github.com/genkuroki)
+    - [2020-04 GRUtils の速度比較情報](https://twitter.com/genkuroki/status/1254323842031292417)
+    - [ツイート](https://twitter.com/genkuroki/status/1233784926899593218?s=21)
+- [Plots.jl: Julia におけるアニメーションのしくみ](https://qiita.com/Lirimy/items/8976bb4dcf5febad178e)
+- [Julia 集合](https://nbviewer.jupyter.org/gist/tenfu2tea/fb8741db797aa42b6585)
+
+## 自分用チュートリアル・クックブック用メモ
+- [bicycle1885 さんによるチュートリアル](https://github.com/bicycle1885/Julia-Tutorial)
+    - [高速チュートリアル](https://github.com/bicycle1885/Julia-Tutorial/blob/master/Julia高速チュートリアル.ipynb)
+    - [クックブック](https://github.com/bicycle1885/Julia-Tutorial/blob/master/Juliaクックブック.ipynb)
+- [ながいさんのやつ](http://park.itc.u-tokyo.ac.jp/kato-yusuke-lab/nagai/julianote.pdf)
+
+## Plots
+- [Document Page](http://docs.juliaplots.org/latest/)
+- [Tutorial](https://docs.juliaplots.org/latest/tutorial/)
+- [Backends](https://docs.juliaplots.org/latest/backends/#backends-1)
+- [Supported Attributes](https://docs.juliaplots.org/latest/generated/supported/#supported-1)
+- [Layouts](https://docs.juliaplots.org/latest/layouts/#layouts-1)
+- [Recipes](https://docs.juliaplots.org/latest/recipes/#recipes-1)
+
+## メモ
+- Julia では高速に計算したいコードは函数の中に入れること
+    - 関数実行時に与えられた引数の型情報を使ってその函数をネイティブコードにコンパイルしてから実行する仕組みがあるため.
+    - 最初の実行時にはコンパイルにも時間が取られるので注意すること.
+- Unicode の数学シンボルがタブで打てる
+    - Julia の REPL やいくつかの Julia 編集環境で使える: 少なくとも Emacs の julia-mode では使えた
+    - 例: δ -> \delta-tab
+    - 例: α̂₂ -> \alpha-tab-\hat-tab-\_2-tab
+
+## samples
+### movie_0001.jl
+- [Julia 単純な動画サンプル GRUtils](https://www.youtube.com/watch?v=U34q8iOqjQo)
+
+### plots_tutorial_0002.jl
+- [Julia ローレンツアトラクター Plots/GR](https://youtu.be/FEaKbnFoTPA)
+
+### movie_0003.jl
+- [Julia Make some waves Plots/GR](https://youtu.be/MHZY7rwvuwU)
+
+### movie_0006.jl
+- [Julia 複素変数のw=z^2 Plots/GR](https://youtu.be/YTzpMIJsSNo)
+
 # visualization
 ## VTK
 - [VTK documentation](https://vtk.org/documentation/)
@@ -148,6 +236,17 @@ git clean -dnX ./   # まずこれでチェック
 - [YouTube](https://youtu.be/1mSGfU9hKvc)
 - [参考ページ](https://www.hello-python.com/2017/04/30/格子ボルツマン法を用いた流体力学のシミュレー/)
 - [オリジナルのページ](http://physics.weber.edu/schroeder/fluids/)
+
+# fem (FEM, 有限要素法)
+## 参考メモ
+- https://snowtree-injune.com/2019/11/20/fem-truss-code/
+- http://mechanics.civil.tohoku.ac.jp/bear/civil/node16.html
+- https://qiita.com/damyarou/items/8ca3432f9bba20a1f5ea
+- https://qiita.com/damyarou/items/85c7902cc658d748115e
+- https://qiita.com/damyarou/items/320bad2052bb5fccd75f
+- https://qiita.com/damyarou/items/aa7b23bafb44dabfa37f
+- https://qiita.com/sasaco/items/ad06f769353cbe12e313
+- http://civilyarou.web.fc2.com/WANtaroHP_F90_html5/jsubF90FEM.html
 
 # rust
 ## 参考ページ
@@ -201,6 +300,8 @@ ffmpeg で mp4 化.
 Gnuplot の方が速そうなので, Gnuplot で何とかできるようになりたい.
 
 ## ode_fitzhugh_nagumo.rs
+- TODO: 動画にパラメータの情報を入れて何をどう変えているかわかるようにする
+- [YouTube へのリンク](https://youtu.be/yKEGwUXjSMw)
 - math_memo.lyx に式と離散化メモあり
 - 予備考察として python 版を実行する
 
@@ -351,6 +452,16 @@ Python または Rust でコードを書いて貯めたい.
 - https://twitter.com/cometscome_phys/status/1243848172134227970?s=21
 - http://www.tsunami.civil.tohoku.ac.jp/hokusai3/J/shibu/19/araki.pdf
 - 有限体積法の解説：https://qiita.com/ur_kinsk/items/03e8e20c51a434e50c9c
+- [行列分解](https://twitter.com/genkuroki/status/1253782606086205442)
+- [差分でPDE解いて境界の扱いを間違えないようになるまで練習する、というのは根本的に間違えているということを理解してほしい](https://dev.to/termoshtt/stencil-abstract-stencil-calculation-i2m)
+    - [元ツイート](https://twitter.com/termoshtt/status/1253671787537170432)
+- [An Interactive Introduction to Fourier Transforms](http://www.jezzamon.com/fourier/)
+- [Processing](https://twitter.com/yuruyurau/status/1250111807181619200?s=21)
+- [いろいろなアニメーションサンプル](https://twitter.com/i/events/974005849608798208)
+- [マンデルブロー](https://www.shadertoy.com/view/3dfBDN)
+- <https://twitter.com/RaviSubbie/status/1256986465881513984>
+- [円](https://twitter.com/jmitani/status/1257173272216518656)
+- https://twitter.com/jmitani/status/1256224294499123201
 
 # YouTube 投稿用メモ
 ## 追加すべきリスト
@@ -365,6 +476,7 @@ Python または Rust でコードを書いて貯めたい.
 - https://github.com/phasetr/mathcodes/
 
 対応するのは次のコードです.
+ファイル・ディレクトリ整理で指定の場所にない場合は上の mathcodes から適当に探してください.
 
 - https://github.com/phasetr/mathcodes/blob/master/ ここを埋める
 
