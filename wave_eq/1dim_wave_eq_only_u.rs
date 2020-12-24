@@ -1,6 +1,9 @@
-// cargo-deps: chrono
+// cargo-deps: chrono, ndarray
 extern crate chrono;
+extern crate ndarray;
 use chrono::Local;
+use ndarray::prelude::*;
+use ndarray::Array1;
 use std::error;
 use std::fs;
 use std::fs::File;
@@ -17,6 +20,7 @@ struct Config {
     pub dx: f64,          // 空間散文間隔 [m]
     pub dt: f64,          // 時間差分間隔 [s]
     pub nx: usize,        // 計算点数
+    pub i_center: usize,  // x 方向の中心点
     pub nt: i64,          // 計算ステップ数
     pub output_step: i64, // 出力ステップ数
     pub m_pml: f64,       // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
@@ -35,9 +39,10 @@ impl Config {
         let c = 1.0;
         let f = 5.0;
         let dx = 0.01;
-        let dt = dx / c;
+        let dt = dx / c * 0.1;
         let nx = 200;
-        let nt = 1000;
+        let i_center = nx / 2 - 1;
+        let nt = 500;
         let output_step = 10;
 
         let m_pml = 2.0;
@@ -54,12 +59,13 @@ impl Config {
         let dir_name = format!("workspace/{}", &title);
 
         let specify_png = format!("{}/img.%08d.png", &dir_name);
-        let movie_name = format!("{}.tmp.mp4", &title);
+        let movie_name = format!("workspace/{}.tmp.mp4", &title);
 
         Ok(Config {
             c: c,
             f: f,
             nx: nx,
+            i_center: i_center,
             nt: nt,
             dx: dx,
             dt: dt,
@@ -81,10 +87,10 @@ struct CalcData {
     pub n: i64,
     pub t: f64,
     pub output_num: i64,
-    pub sigma: Vec<f64>,
-    pub x: Vec<f64>,
-    pub u: Vec<f64>,    // 元の関数
-    pub uold: Vec<f64>, // u の 1 階の時間導関数
+    pub sigma: Array1<f64>,
+    pub x: Array1<f64>,
+    pub u: Array1<f64>,    // 元の関数
+    pub uold: Array1<f64>, // u の 1 階の時間導関数
 }
 
 impl CalcData {
@@ -92,16 +98,16 @@ impl CalcData {
         let n: i64 = 0;
         let t: f64 = 0.0;
         let output_num: i64 = 0;
-        let sigma = vec![0.0; cnf.nx];
+        let sigma = Array::zeros(cnf.nx);
 
-        let mut x = vec![0.0; cnf.nx];
+        let mut x = Array::zeros(cnf.nx);
         x[0] = -(cnf.nx as f64) * cnf.dx / 2.0;
         for i in 1..(cnf.nx) {
             x[i] = x[i - 1] + cnf.dx;
         }
 
-        let u = vec![0.0; cnf.nx];
-        let uold = vec![0.0; cnf.nx];
+        let u = Array::zeros(cnf.nx);
+        let uold = Array::zeros(cnf.nx);
         CalcData {
             n: n,
             t: t,
@@ -141,7 +147,7 @@ impl CalcData {
     pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
         let csv_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
         let png_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
-        let cmd = Command::new("gnuplot")
+        Command::new("gnuplot")
             .arg("-e")
             .arg(r#"set terminal png;"#)
             .arg("-e")
@@ -206,9 +212,9 @@ fn main() {
         cdata.n = cdata.n + 1;
         cdata.t = cdata.t + cnf.dt;
 
-        let mut unew = vec![0.0; cnf.nx];
+        let mut unew = Array::zeros(cnf.nx);
 
-        cdata.u[cnf.nx / 2 - 1] = 0.5 * f64::sin(2.0 * PI * cnf.f * cdata.t);
+        cdata.u[cnf.i_center] = 0.5 * f64::sin(2.0 * PI * cnf.f * cdata.t);
 
         for i in 1..(cnf.nx - 2) {
             unew[i] = 2.0 * cdata.u[i] - cdata.uold[i]

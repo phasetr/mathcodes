@@ -57,14 +57,14 @@ impl Config {
         let r_pml = 0.5;
         let n_pml = 12;
 
-        let prog_name = "3dim-wave-eq-pml";
+        let prog_name = "3dim-wave-eq-u-ut";
         let title = Local::now()
             .format(&format!("%Y%m%d-%H%M%S-{}", &prog_name))
             .to_string();
         let dir_name = format!("workspace/{}", &title);
 
         let specify_png = format!("{}/img.%08d.png", &dir_name);
-        let movie_name = format!("{}.tmp.mp4", &title);
+        let movie_name = format!("workspace/{}.tmp.mp4", &title);
 
         Ok(Config {
             c: c,

@@ -12,8 +12,6 @@ use std::io::BufWriter;
 use std::process;
 use std::process::Command;
 
-const PI: f64 = std::f64::consts::PI;
-
 pub enum RiemannOption {
     FluxVectorSplitting,
     FluxDifferenceSplitting,
@@ -74,6 +72,7 @@ struct Config {
 impl Config {
     pub fn new() -> Result<Config, &'static str> {
         let i_max = 100;
+        let node = i_max + 1;
         let xl = -1.0;
         let xr = 1.0;
         let gamma = 1.4;
@@ -100,7 +99,7 @@ impl Config {
 
         Ok(Config {
             i_max: i_max,
-            node: i_max + 1,
+            node: node,
             xl: xl,
             xr: xr,
             gamma: gamma,
@@ -141,20 +140,11 @@ struct CalcData {
     pub rhoexact: Array1<f64>, // 各格子上における密度の厳密解
     pub uexact: Array1<f64>,   // 各格子上における速度の厳密解
     pub pexact: Array1<f64>,   // 各格子上における圧力の厳密解
-    // 空間再構築から求めたセル境界左・右側の保存変数
-    pub rho_l: Array1<f64>,  // 左側の密度“rho^L”
-    pub rho_r: Array1<f64>,  // 右側の密度“rho^R”
-    pub rhou_l: Array1<f64>, // 左側の運動量“(rho・u)^L”
-    pub rhou_r: Array1<f64>, // 右側の運動量“(rho・u)^R”
-    pub rhoe_l: Array1<f64>, // 左側の総エネルギー“(rho・E)^L”
-    pub rhoe_r: Array1<f64>, // 右側の総エネルギー“(rho・E)^R”
     // セル境界における数値流束
-    pub f1: Array1<f64>,        // 密度流束
-    pub f2: Array1<f64>,        // 運動量流束
-    pub f3: Array1<f64>,        // 全エネルギー流束
-    pub lh_rho: Array1<f64>,    // 密度の空間離散式
-    pub lh_rhou: Array1<f64>,   // 運動量の空間離散式
-    pub lh_rhoe: Array1<f64>,   // 総エネルギーの空間離散式
+    pub f1: Array1<f64>, // 密度流束
+    pub f2: Array1<f64>, // 運動量流束
+    pub f3: Array1<f64>, // 全エネルギー流束
+    // 各物理量の中間値
     pub rho_star: Array1<f64>,  // 密度の中間値
     pub rhou_star: Array1<f64>, // 運動量の中間値
     pub rhoe_star: Array1<f64>, // 総エネルギーの中間値
@@ -173,32 +163,21 @@ impl CalcData {
             x[i] = x[i - 1] + cnf.dx;
         }
 
-        let mut rho = Array::zeros(cnf.node - 1);
-        let mut rhou = Array::zeros(cnf.node - 1);
-        let mut rhoe = Array::zeros(cnf.node - 1);
-        let mut u = Array::zeros(cnf.node - 1);
-        let mut p = Array::zeros(cnf.node - 1);
-
-        let rho_l = Array::zeros(cnf.node);
-        let rho_r = Array::zeros(cnf.node);
-        let rhou_l = Array::zeros(cnf.node);
-        let rhou_r = Array::zeros(cnf.node);
-        let rhoe_l = Array::zeros(cnf.node);
-        let rhoe_r = Array::zeros(cnf.node);
+        let mut rho = Array::zeros(cnf.node);
+        let mut rhou = Array::zeros(cnf.node);
+        let mut rhoe = Array::zeros(cnf.node);
+        let mut u = Array::zeros(cnf.node);
+        let mut p = Array::zeros(cnf.node);
 
         let f1 = Array::zeros(cnf.node);
         let f2 = Array::zeros(cnf.node);
         let f3 = Array::zeros(cnf.node);
 
-        let lh_rho = Array::zeros(cnf.node - 1);
-        let lh_rhou = Array::zeros(cnf.node - 1);
-        let lh_rhoe = Array::zeros(cnf.node - 1);
-
         let rho_star = Array::zeros(cnf.node - 1);
         let rhou_star = Array::zeros(cnf.node - 1);
         let rhoe_star = Array::zeros(cnf.node - 1);
 
-        for i in 0..(cnf.node - 1) {
+        for i in 0..cnf.node {
             if x[i] <= 0.0 {
                 rho[i] = 1.0;
                 u[i] = 0.0; // 不要だがプログラムを比較しやすくするために入れておく
@@ -207,7 +186,7 @@ impl CalcData {
                 rhoe[i] = 0.5 * rhou[i] * u[i] + p[i] / (cnf.gamma - 1.0);
             } else {
                 rho[i] = 0.125;
-                u[i] = 0.0; // 不要だがプログラムを比較しやすくするために入れておく
+                u[i] = 0.0;
                 p[i] = 0.1;
                 rhou[i] = rho[i] * u[i];
                 rhoe[i] = 0.5 * rhou[i] * u[i] + p[i] / (cnf.gamma - 1.0);
@@ -231,18 +210,9 @@ impl CalcData {
             rhoexact: rhoexact,
             uexact: uexact,
             pexact: pexact,
-            rho_l: rho_l,
-            rho_r: rho_r,
-            rhou_l: rhou_l,
-            rhou_r: rhou_r,
-            rhoe_l: rhoe_l,
-            rhoe_r: rhoe_r,
             f1: f1,
             f2: f2,
             f3: f3,
-            lh_rho: lh_rho,
-            lh_rhou: lh_rhou,
-            lh_rhoe: lh_rhoe,
             rho_star: rho_star,
             rhou_star: rhou_star,
             rhoe_star: rhoe_star,
@@ -263,19 +233,17 @@ impl CalcData {
         let file_name: String = format!("{}/{:08}.csv", &cnf.csv_dir_name, &cdata.n);
         let file = File::create(file_name).unwrap();
         let mut w = BufWriter::new(file);
-        write!(w, "x,u,rho,p,uexact,rhoexact,pexact,rhou_star,f1\n").unwrap();
+        write!(w, "x,rho,u,p,rhou,rhoe,rhoexact\n").unwrap();
         for i in 0..(cnf.node - 1) {
             let s = format!(
-                "{},{},{},{},{},{},{},{},{}\n",
+                "{},{},{},{},{},{},{}\n",
                 &cdata.x[i],
-                &cdata.u[i],
                 &cdata.rho[i],
+                &cdata.u[i],
                 &cdata.p[i],
-                &cdata.uexact[i],
+                &cdata.rhou[i],
+                &cdata.rhoe[i],
                 &cdata.rhoexact[i],
-                &cdata.pexact[i],
-                &cdata.rhou_star[i],
-                &cdata.f1[i]
             );
             // unwrap を呼んで書き込みエラーを検知
             write!(w, "{}", s).unwrap();
@@ -306,7 +274,7 @@ impl CalcData {
             .arg(format!(r#"set output "{}""#, &png_name))
             .arg("-e")
             .arg(format!(
-                r#"plot "{}" using 1:3 title "rho numerical" with lines lw 2.5, "{}" using 1:6 title "rho exact" with lines lw 2.5;"#,
+                r#"plot "{}" using 1:2 title "rho numerical" with points ps 2.5, "{}" using 1:7 title "rho exact" with points ps 2.5;"#,
                 &csv_name,
                 &csv_name
             ))
@@ -351,16 +319,14 @@ fn exact_solution(cnf: &Config, cdata: &CalcData) -> ExactSolutions {
     let mut p21 = p1 / p5;
     let mut pm = 21.0 + 0.01;
     let mut pmm = pm + 0.01;
-    let mut fm = 0.0;
-    let mut df = 0.0;
     let mut fmm = capital_f(&cnf, pm, p1, p5, rho1, rho5, u1, u5);
     let mut it = 0;
     let mut error = 1.0;
     let eps = 1e-5; // 収束判定条件
 
     while error > eps && it <= cnf.itmax {
-        fm = capital_f(&cnf, p21, p1, p5, rho1, rho5, u1, u5);
-        df = fm - fmm;
+        let fm = capital_f(&cnf, p21, p1, p5, rho1, rho5, u1, u5);
+        let df = fm - fmm;
         p21 = p21 - (p21 - pmm) * fm / (df + 1.0e-8 * df / (f64::abs(df) + 1.0e-8));
         error = f64::abs(p21 - pm) / pm;
         pmm = pm;
@@ -454,7 +420,7 @@ fn main() {
         println!("! {:?}", why.kind());
     });
 
-    // initc
+    // initc, 一次元衝撃波管（ショックチューブ）問題の初期値
     let mut cdata = CalcData::new(&cnf);
     let esols = exact_solution(&cnf, &cdata);
     cdata.rhoexact = esols.rhoexact;
@@ -479,12 +445,14 @@ fn main() {
         cnf.dt = cfl_check(&cnf, &cdata);
 
         // Lax_Wendroff
-        for i in 0..(cnf.node - 2) {
+        for i in 1..(cnf.node - 2) {
             cdata.rho_star[i + 1] = 0.5 * (cdata.rho[i + 1] + cdata.rho[i])
                 - 0.5 * cnf.dt * (cdata.rhou[i + 1] - cdata.rhou[i]) / cnf.dx;
+            // 圧力の計算: P.108, (5.3) 理想気体の状態方程式から
             let p1 = (cnf.gamma - 1.0)
                 * (cdata.rhoe[i + 1]
                     - 0.5 * cdata.rhou[i + 1] * cdata.rhou[i + 1] / cdata.rho[i + 1]);
+            // 圧力の計算: P.108, (5.3) 理想気体の状態方程式から
             let p2 = (cnf.gamma - 1.0)
                 * (cdata.rhoe[i] - 0.5 * cdata.rhou[i] * cdata.rhou[i] / cdata.rho[i]);
             cdata.rhou_star[i + 1] = 0.5 * (cdata.rhou[i + 1] + cdata.rhou[i])
@@ -501,7 +469,7 @@ fn main() {
                     / cnf.dx;
         }
 
-        for i in 0..(cnf.node - 2) {
+        for i in 2..(cnf.node - 3) {
             cdata.f1[i] = cdata.rhou_star[i];
             let p = (cnf.gamma - 1.0)
                 * (cdata.rhoe_star[i]
@@ -510,27 +478,31 @@ fn main() {
             cdata.f3[i] = cdata.rhou_star[i] * (cdata.rhoe_star[i] + p) / cdata.rho_star[i];
         }
 
-        // 左端における数値流束の境界条件
-        cdata.f1[1] = cdata.f1[2];
-        cdata.f2[1] = cdata.f2[2];
-        cdata.f3[1] = cdata.f3[2];
-        cdata.f1[0] = cdata.f1[1];
-        cdata.f2[0] = cdata.f2[1];
-        cdata.f3[0] = cdata.f3[1];
-        // 右端における数値流束の境界条件
-        cdata.f1[cnf.node - 1] = cdata.f1[cnf.node - 2];
-        cdata.f2[cnf.node - 1] = cdata.f2[cnf.node - 2];
-        cdata.f3[cnf.node - 1] = cdata.f3[cnf.node - 2];
+        //　計算領域左端の境界条件
+        cdata.rho[1] = cdata.rho[2];
+        cdata.rhou[1] = cdata.rhou[2];
+        cdata.rhoe[1] = cdata.rhoe[2];
+        cdata.rho[0] = cdata.rho[1];
+        cdata.rhou[0] = cdata.rhou[1];
+        cdata.rhoe[0] = cdata.rhoe[1];
+
+        //　計算領域右端の境界条件
+        cdata.rho[cnf.i_max - 2] = cdata.rho[cnf.i_max - 3];
+        cdata.rhou[cnf.i_max - 2] = cdata.rhou[cnf.i_max - 3];
+        cdata.rhoe[cnf.i_max - 2] = cdata.rhoe[cnf.i_max - 3];
+        cdata.rho[cnf.i_max - 1] = cdata.rho[cnf.i_max - 2];
+        cdata.rhou[cnf.i_max - 1] = cdata.rhou[cnf.i_max - 2];
+        cdata.rhoe[cnf.i_max - 1] = cdata.rhoe[cnf.i_max - 2];
 
         // update
-        for i in 1..(cnf.node - 1) {
+        for i in 2..(cnf.node - 3) {
             // 時間積分 一次オイラー前進時間積分法による保存変数の更新
             cdata.rho[i] = cdata.rho[i]
-                - cnf.dt * (cdata.f1[i + 1] - cdata.f1[i]) / (cdata.x[i + 1] - cdata.x[i]);
+                - cnf.dt / (cdata.x[i + 1] - cdata.x[i]) * (cdata.f1[i + 1] - cdata.f1[i]);
             cdata.rhou[i] = cdata.rhou[i]
-                - cnf.dt * (cdata.f2[i + 1] - cdata.f2[i]) / (cdata.x[i + 1] - cdata.x[i]);
+                - cnf.dt / (cdata.x[i + 1] - cdata.x[i]) * (cdata.f2[i + 1] - cdata.f2[i]);
             cdata.rhoe[i] = cdata.rhoe[i]
-                - cnf.dt * (cdata.f3[i + 1] - cdata.f3[i]) / (cdata.x[i + 1] - cdata.x[i]);
+                - cnf.dt / (cdata.x[i + 1] - cdata.x[i]) * (cdata.f3[i + 1] - cdata.f3[i]);
         }
 
         // exact

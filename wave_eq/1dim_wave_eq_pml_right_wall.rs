@@ -54,7 +54,7 @@ impl Config {
         let dir_name = format!("workspace/{}", &title);
 
         let specify_png = format!("{}/img.%08d.png", &dir_name);
-        let movie_name = format!("{}.tmp.mp4", &title);
+        let movie_name = format!("workspace/{}.tmp.mp4", &title);
 
         Ok(Config {
             c: c,

@@ -2,8 +2,6 @@
 extern crate chrono;
 extern crate ndarray;
 use chrono::Local;
-//use ndarray::array;
-//use ndarray::prelude::*;
 use ndarray::Array;
 use ndarray::Array1;
 use std::env;
@@ -312,7 +310,7 @@ impl CalcData {
             .arg(format!(r#"set output "{}""#, &png_name))
             .arg("-e")
             .arg(format!(
-                r#"plot "{}" using 1:3 title "u numerical" with lines lw 2.5, "{}" using 1:6 title "u exact" with lines lw 2.5;"#,
+                r#"plot "{}" using 1:3 title "rho numerical" with lines lw 2.5, "{}" using 1:6 title "rho exact" with lines lw 2.5;"#,
                 &csv_name,
                 &csv_name
             ))

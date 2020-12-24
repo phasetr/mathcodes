@@ -1,11 +1,13 @@
 #-*- coding=utf-8 -*-
 from matplotlib import animation
+import datetime
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import os.path
+import pandas as pd
 import pprint
 pp = pprint.pprint
 
@@ -53,20 +55,30 @@ def main():
     # initc
     dx = (XR - XL) / i_max # 格子間隔, 0.02
     dt = 0.2 * dx          # 時間刻み
-    x = np.linspace(XL, XR + dx, int((XR - XL) / dx) + 2)
-    u = 0.5 * (1.1 + np.sin(2 * np.pi * (x - a * t) * (i_max + 3) / (i_max) ))
+    x = np.linspace(XL, XR + dx, int((XR - XL) / dx) + 1)
+    u = 0.5 * (1.1 + np.sin(2 * np.pi * (x - a * t) * (i_max + 3) / (i_max)))
+    ue = 0.5 * (1.1 + np.sin(2 * np.pi * (x - a * t) * (i_max + 3) / (i_max)))
+
+    dir_name = datetime.datetime.now().strftime('workspace/%Y%m%d-%H%M%S_program4-1_smooth_py')
+    os.makedirs(dir_name, exist_ok=True)
+    df = pd.DataFrame({ 'xs':  x,
+                        'us':  u,
+                        'ues': ue,
+                        'uls': ul,
+                        'urs': ur,
+                        'fs':  f })
+    df.to_csv(f"{dir_name}/{t}.csv")
 
     fig = plt.figure()
     imgs = []
     flag_legend = True # 凡例描画のフラグ
 
     while(t <= tstop):
-        print(f"SMOOTH CASE: t = {t}")
         n = n + 1
         t = t + dt
 
         # reconstruction_pc
-        ul[2: -1] = u[1: -3]
+        ul[2: -1] = u[1: -2]
         ur[2: -1] = u[1: i_max - 1]
 
         # riemann_roe
@@ -74,7 +86,7 @@ def main():
             - 0.5 * abs(a) * (ur[2: -1] - ul[2: -1])
 
         # update
-        u[2: -2] = u[2: -2] - dt / dx * (f[3:] - f[2: -1])
+        u[2: -2] = u[2: -2] - dt / dx * (f[3:-1] - f[2: -2])
 
         # bc
         u[0] = u[i_max - 3]
@@ -85,8 +97,16 @@ def main():
         # exact
         ue = 0.5 * (1.1 + np.sin(2 * np.pi * (x - a * t) * (i_max + 3) / (i_max)))
 
-        img1 = plt.plot(x[:-1], u[:-1],  label="Num sol",   color="blue")
-        img2 = plt.plot(x[:-1], ue[:-1], label="Exact sol", color="red")
+        df = pd.DataFrame({ 'xs':  x,
+                            'us':  u,
+                            'ues': ue,
+                            'uls': ul,
+                            'urs': ur,
+                            'fs':  f })
+        df.to_csv(f"{dir_name}/{t}.csv")
+
+        img1 = plt.plot(x, u,  label="Num sol",   color="blue")
+        img2 = plt.plot(x, ue, label="Exact sol", color="red")
         if flag_legend: # 一回だけ凡例を描画
             plt.legend()
             flag_legend = False
@@ -107,17 +127,26 @@ def main():
     u = np.full(len(x), 0.1)
     u[40:61] = 1
 
+    dir_name = datetime.datetime.now().strftime('workspace/%Y%m%d-%H%M%S_program4-1_square_py')
+    os.makedirs(dir_name, exist_ok=True)
+    df = pd.DataFrame({ 'xs':  x,
+                        'us':  u,
+                        'ues': ue,
+                        'uls': ul,
+                        'urs': ur,
+                        'fs':  f })
+    df.to_csv(f"{dir_name}/{t}.csv")
+
     fig = plt.figure()
     imgs = []
     flag_legend = True # 凡例描画のフラグ
 
     while(t <= tstop):
-        print(f"SQUARE CASE: t = {t}")
         n = n + 1
         t = t + dt
 
         # reconstruction_pc
-        ul[2: -1] = u[1: -3]
+        ul[2: -1] = u[1: -2]
         ur[2: -1] = u[1: i_max - 1]
 
         # riemann_roe
@@ -125,7 +154,7 @@ def main():
             - 0.5 * abs(a) * (ur[2: -1] - ul[2: -1])
 
         # update
-        u[2: -2] = u[2: -2] - dt / dx * (f[3:] - f[2: -1])
+        u[2: -2] = u[2: -2] - dt / dx * (f[3:-1] - f[2: -2])
 
         # bc
         u[0] = u[i_max - 3]
@@ -153,8 +182,16 @@ def main():
                 if (xr <= (i - i_max / 2) * dx) and (i - i_max / 2) * dx <= xl:
                     ue[i] = 0.1
 
-        img1 = plt.plot(x[:-1], u[:-1],  label="Num sol",   color="blue")
-        img2 = plt.plot(x[:-1], ue[:-1], label="Exact sol", color="red")
+        df = pd.DataFrame({ 'xs':  x,
+                            'us':  u,
+                            'ues': ue,
+                            'uls': ul,
+                            'urs': ur,
+                            'fs':  f })
+        df.to_csv(f"{dir_name}/{t}.csv")
+
+        img1 = plt.plot(x, u,  label="Num sol",   color="blue")
+        img2 = plt.plot(x, ue, label="Exact sol", color="red")
         if flag_legend: # 一回だけ凡例を描画
             plt.legend()
             flag_legend = False

@@ -3,6 +3,9 @@
 import numpy
 import matplotlib.pyplot
 import matplotlib.animation
+import pandas as pd
+import pprint
+pp = pprint.pprint
 
 height = 80
 width = 200
@@ -27,8 +30,11 @@ ux = (nE + nNE + nSE - nW - nNW - nSW) / rho
 uy = (nN + nNE + nNW - nS - nSE - nSW) / rho
 
 barrier = numpy.zeros((height,width), bool)
+#pd.DataFrame(barrier).to_csv("sample1_0_orig.tmp.csv")
 barrier[int(height/2)-8: int(height/2)+8, int(height/2)] = True
+#pd.DataFrame(barrier).to_csv("sample1_1.tmp.csv")
 barrier[int(height/2)-8, int(height/2) + 1] = True
+#pd.DataFrame(barrier).to_csv("sample1_2.tmp.csv")
 barrierN = numpy.roll(barrier,  1, axis=0)
 barrierS = numpy.roll(barrier, -1, axis=0)
 barrierE = numpy.roll(barrier,  1, axis=1)

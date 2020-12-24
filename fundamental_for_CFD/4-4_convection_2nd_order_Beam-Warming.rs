@@ -164,7 +164,7 @@ fn main() {
         n = n + 1;
         t = t + dt;
 
-        // reconstruction_lw
+        // reconstruction_bw
         for i in 1..(NODE - 2) {
             let delta_l = 0.5 * (us[i] - us[i - 1]);
             let delta_r = 0.5 * (us[i + 2] - us[i + 1]);

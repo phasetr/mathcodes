@@ -1,7 +1,10 @@
 extern crate chap4;
 extern crate chrono;
-use chap4::Config;
-use chap4::*;
+use chap4::config::Config;
+use chap4::fs::write_csv;
+use chap4::reconstruction::Reconstruction;
+use chap4::riemann_solver::Riemann;
+use chap4::update as upd;
 use chrono::Local;
 use std::env;
 use std::fs;
@@ -29,14 +32,14 @@ fn main() {
     // 初期化
     let mut n: i64 = 0;
     let mut t: f64 = 0.0;
-    let (xs, mut us) = init(&cnf);
-    let ues = exact(&cnf, t, &xs);
+    let (xs, mut us) = upd::initialize(&cnf);
+    let ues = upd::exact(&cnf, t, &xs);
     let uls = vec![0.0; cnf.node];
     let urs = vec![0.0; cnf.node];
     let fs = vec![0.0; cnf.node];
 
     // 初期自国でのデータ記録
-    write_file(&dir_name, &n, &cnf.node, &xs, &us, &ues, &uls, &urs, &fs)
+    write_csv(&dir_name, &n, &cnf.node, &xs, &us, &ues, &uls, &urs, &fs)
         .map_err(|err| println!("{:?}", err))
         .ok();
 
@@ -44,12 +47,12 @@ fn main() {
         n = n + 1;
         t = t + cnf.dt;
 
-        let (uls, urs) = reconstruction(&cnf, &us);
-        let fs = riemann(&cnf, &uls, &urs);
-        us = update(&cnf, &us, &fs);
-        let ues = exact(&cnf, t, &xs);
+        let ulr = Reconstruction::reconstruction(&cnf, &us);
+        let fs = Riemann::riemann(&cnf, &us, &ulr.uls, &ulr.urs);
+        us = upd::update(&cnf, &us, &fs);
+        let ues = upd::exact(&cnf, t, &xs);
 
-        write_file(&dir_name, &n, &cnf.node, &xs, &us, &ues, &uls, &urs, &fs)
+        write_csv(&dir_name, &n, &cnf.node, &xs, &us, &ues, &uls, &urs, &fs)
             .map_err(|err| println!("{:?}", err))
             .ok();
     }

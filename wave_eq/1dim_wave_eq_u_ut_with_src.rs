@@ -27,7 +27,8 @@ struct Config {
     pub m_pml: f64,       // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
     pub r_pml: f64,       // 境界面において実現したい反射係数
     pub n_pml: i64,       // PMLの層数、大きいほど計算コストが増えるが、反射率低減可
-    pub dir_name: String,
+    pub csv_dir_name: String,
+    pub png_dir_name: String,
     pub title: String,
     pub specify_png: String,
     pub movie_name: String,
@@ -47,21 +48,22 @@ impl Config {
         let nt = 1000;
         let output_step = 1;
 
+        let graph_ulim_min = -3.0;
+        let graph_ulim_max = 3.0;
+
         let m_pml = 2.0;
         let r_pml = 0.5;
-        let n_pml = 12;
-
-        let graph_ulim_min = -2.0;
-        let graph_ulim_max = 2.0;
+        let n_pml = 10;
 
         let prog_name = "1dim-wave-eq-u-ut-with-src";
         let title = Local::now()
             .format(&format!("%Y%m%d-%H%M%S-{}", &prog_name))
             .to_string();
-        let dir_name = format!("workspace/{}", &title);
+        let csv_dir_name = format!("workspace/{}_csv", &title);
+        let png_dir_name = format!("workspace/{}_png", &title);
 
-        let specify_png = format!("{}/img.%08d.png", &dir_name);
-        let movie_name = format!("{}.tmp.mp4", &title);
+        let specify_png = format!("{}/img.%08d.png", &png_dir_name);
+        let movie_name = format!("workspace/{}.tmp.mp4", &title);
 
         Ok(Config {
             c: c,
@@ -76,7 +78,8 @@ impl Config {
             m_pml: m_pml,
             r_pml: r_pml,
             n_pml: n_pml,
-            dir_name: dir_name,
+            csv_dir_name: csv_dir_name,
+            png_dir_name: png_dir_name,
             title: title,
             specify_png: specify_png,
             movie_name: movie_name,
@@ -133,7 +136,7 @@ impl CalcData {
     }
 
     pub fn write_csv(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
-        let file_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
+        let file_name: String = format!("{}/{:08}.csv", &cnf.csv_dir_name, &cdata.output_num);
         let file = File::create(file_name).unwrap();
         let mut w = BufWriter::new(file);
         write!(w, "x,u\n").unwrap();
@@ -148,8 +151,8 @@ impl CalcData {
     }
 
     pub fn write_png(cnf: &Config, cdata: &CalcData) -> Result<(), Box<dyn error::Error>> {
-        let csv_name: String = format!("{}/{:08}.csv", &cnf.dir_name, &cdata.output_num);
-        let png_name: String = format!("{}/img.{:08}.png", &cnf.dir_name, &cdata.output_num);
+        let csv_name: String = format!("{}/{:08}.csv", &cnf.csv_dir_name, &cdata.output_num);
+        let png_name: String = format!("{}/img.{:08}.png", &cnf.png_dir_name, &cdata.output_num);
         Command::new("gnuplot")
             .arg("-e")
             .arg(r#"set terminal png;"#)
@@ -192,7 +195,10 @@ fn main() {
         process::exit(1);
     });
 
-    fs::create_dir_all(&cnf.dir_name).unwrap_or_else(|why| {
+    fs::create_dir_all(&cnf.csv_dir_name).unwrap_or_else(|why| {
+        println!("! {:?}", why.kind());
+    });
+    fs::create_dir_all(&cnf.png_dir_name).unwrap_or_else(|why| {
         println!("! {:?}", why.kind());
     });
 
@@ -206,6 +212,7 @@ fn main() {
         .ok();
 
     let alpha = cnf.dt / cnf.dx.powf(2.0);
+    let alpha_w = cnf.dt / cnf.dx;
 
     while cdata.n <= cnf.nt {
         if cdata.n % cnf.output_step == 0 {

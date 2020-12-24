@@ -21,7 +21,7 @@ struct Config {
 impl Config {
     pub fn new(args: &[String]) -> Result<Config, &'static str> {
         if args.len() < 2 {
-            return Err("正弦波に対しては 0, 矩形波に対しては 1 を入力してください.");
+            return Err("正弦波に対しては 1, 矩形波に対しては 2 を入力してください.");
         }
 
         let choice: i8 = args[1].clone().parse().unwrap();

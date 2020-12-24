@@ -21,6 +21,7 @@ struct Config {
     pub dx: f64,          // 空間散文間隔 [m]
     pub dt: f64,          // 時間差分間隔 [s]
     pub nx: usize,        // 計算点数
+    pub i_center: usize,  // x 方向の中心点
     pub nt: i64,          // 計算ステップ数
     pub output_step: i64, // 出力ステップ数
     pub m_pml: f64,       // 吸収境界の導電率の上昇曲線の次数(2 - 3次が一般的)
@@ -43,6 +44,7 @@ impl Config {
         let dx = 0.01;
         let dt = dx / c * 0.05;
         let nx = 200;
+        let i_center = nx / 2 - 1;
         let nt = 5000;
         let output_step = 10;
 
@@ -50,8 +52,8 @@ impl Config {
         let r_pml = 0.5;
         let n_pml = 10;
 
-        let graph_ulim_min = -3.0;
-        let graph_ulim_max = 3.0;
+        let graph_ulim_min = -2.0;
+        let graph_ulim_max = 2.0;
 
         let prog_name = "1dim-wave-eq-pml-both-side-compare";
         let title = Local::now()
@@ -68,6 +70,7 @@ impl Config {
             a: a,
             f: f,
             nx: nx,
+            i_center: i_center,
             nt: nt,
             dx: dx,
             dt: dt,

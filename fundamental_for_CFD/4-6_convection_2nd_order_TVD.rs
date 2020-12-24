@@ -107,7 +107,11 @@ fn minmod(x: f64) -> f64 {
 }
 
 fn sign(x: f64) -> f64 {
-    if x >= 0.0 { 1.0 } else { -1.0 }
+    if x >= 0.0 {
+        1.0
+    } else {
+        -1.0
+    }
 }
 
 fn main() {
