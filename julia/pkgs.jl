@@ -1,7 +1,6 @@
 # https://marui.hatenablog.com/entry/2020/01/14/001900
 using Pkg
 
-# Misc
 # Pkg.add("ACME")
 # Pkg.add("ColorSchemeTools")
 # Pkg.add("Documenter")
@@ -40,6 +39,7 @@ Pkg.add("Measures")
 Pkg.add("MultipleTesting")
 Pkg.add("MultivariateStats")
 Pkg.add("NMF")
+Pkg.add("Parameters")
 Pkg.add("Plots")
 Pkg.add("Primes")
 Pkg.add("ProgressMeter")

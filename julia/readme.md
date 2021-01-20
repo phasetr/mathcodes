@@ -16,6 +16,10 @@
 
 - [黒木ツイート](https://twitter.com/genkuroki/status/1318631440129560576)
 
+### rc ファイル
+
+`.juliarc.jl` が初期化のファイルになる? [参考](https://stackoverflow.com/questions/42104130/module-aliasing-in-julia).
+
 ## REPL
 
 ### 開始
