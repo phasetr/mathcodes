@@ -218,10 +218,6 @@ function plot1000CIs(population_dist; n=30, α=0.05)
     P1 = plot_CIs(μ₀, α, X; indices=1:500)
     P2 = plot_CIs(μ₀, α, X; indices=501:1000)
     plot(P1, P2, size=(1000, 300), layout=grid(2,1))
-
-    #pngname = "images/006_03_plot_1000.png"
-    #savefig(pngname)
-    #showimg("image/png", pngname)
 end
 ```
 
@@ -240,10 +236,6 @@ plot1000CIs(Normal(); n=10, α=0.05)
 mixnormal = MixtureModel([Normal(), Normal(50, 1)], [0.95, 0.05])
 x = range(-10, 60, length=400)
 plot(x, pdf.(mixnormal, x), label="mixnormal")
-
-#pngname = "images/006_04_mixnormal.png"
-#savefig(pngname)
-#showimg("image/png", pngname)
 ```
 
 このとき, その母集団のサイズ $n=30$ のサンプルに例外的な5%の小集団の要素が1つも含まれない確率は21%強にもなる. サイズ $n=30$ のサンプルだと例外的な5%の存在を完全に見逃す可能性が20%を超えている. このような可能性が疑われる場合には, 正規分布モデルに基いた信頼区間は機能しなくなる.
@@ -262,9 +254,6 @@ plot(x, pdf.(mixnormal, x), label="mixnormal")
 
 ```julia
 plot1000CIs(mixnormal; n=30, α=0.05)
-#pngname = "images/006_05_mixnormal_plot1000_n30.png"
-#savefig(pngname)
-#showimg("image/png", pngname)
 ```
 
 以下では以上と同じことをサイズ $n=100$ のサンプルで行っている. 95%信頼区間に母集団の平均が含まれる割合は90%に届かない. そうなってしまう理由はサイズ $n=100$ のサンプルに5%の例外が1つも含まれないことはまれだが(0.6%弱), 5%の例外の含まれる確率が5%よりも小さ過ぎると, 信頼区間が小さい方に偏り過ぎてしまうことになってしまうからだ. 
@@ -281,9 +270,6 @@ plot1000CIs(mixnormal; n=30, α=0.05)
 
 ```julia
 plot1000CIs(mixnormal; n=100, α=0.05)
-#pngname = "images/006_06_mixnormal_plot1000_n100.png"
-#savefig(pngname)
-#showimg("image/png", pngname)
 ```
 
 ### それではどうすればよいのか？
@@ -309,10 +295,6 @@ plot1000CIs(mixnormal; n=100, α=0.05)
 ```julia
 @show prob_of_true_val_is_in_confint(Uniform(); n=30, α=0.05)
 plot1000CIs(Uniform(0, 1); n=30, α=0.05)
-
-#pngname = "images/006_07_uniform_plot1000_n30.png"
-#savefig(pngname)
-#showimg("image/png", pngname)
 ```
 
 ### ガンマ分布
@@ -320,10 +302,6 @@ plot1000CIs(Uniform(0, 1); n=30, α=0.05)
 ```julia
 @show prob_of_true_val_is_in_confint(Gamma(10, 0.1); n=30, α=0.05)
 plot1000CIs(Gamma(10, 0.1); n=30, α=0.05)
-
-#pngname = "images/006_08_Gamma_plot1000_n30.png"
-#savefig(pngname)
-#showimg("image/png", pngname)
 ```
 
 ### 指数分布
@@ -331,10 +309,6 @@ plot1000CIs(Gamma(10, 0.1); n=30, α=0.05)
 ```julia
 @show prob_of_true_val_is_in_confint(Exponential(); n=30, α=0.05)
 plot1000CIs(Exponential(); n=30, α=0.05)
-
-#pngname = "images/006_09_Exponential_plot1000_n30.png"
-#savefig(pngname)
-#showimg("image/png", pngname)
 ```
 
 ### 対数正規分布
@@ -342,10 +316,6 @@ plot1000CIs(Exponential(); n=30, α=0.05)
 ```julia
 @show prob_of_true_val_is_in_confint(LogNormal(); n=30, α=0.05)
 plot1000CIs(LogNormal(); n=30, α=0.05)
-
-#pngname = "images/006_10_LogNormal_plot1000_n30.png"
-#savefig(pngname)
-#showimg("image/png", pngname)
 ```
 
 ### ベータ分布
@@ -353,8 +323,4 @@ plot1000CIs(LogNormal(); n=30, α=0.05)
 ```julia
 @show prob_of_true_val_is_in_confint(Beta(0.1, 10); n=30, α=0.05)
 plot1000CIs(Beta(0.1, 10); n=30, α=0.05)
-
-#pngname = "images/006_11_Beta_plot1000_n30.png"
-#savefig(pngname)
-#showimg("image/png", pngname)
 ```
