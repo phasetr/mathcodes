@@ -22,6 +22,12 @@
 
 ## REPL
 
+### LanguageServer 起動
+
+```sh
+julia -e "using LanguageServer, LanguageServer.SymbolServer; runserver()"
+```
+
 ### 開始
 
 ```sh
