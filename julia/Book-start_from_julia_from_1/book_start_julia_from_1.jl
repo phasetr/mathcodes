@@ -538,6 +538,7 @@ println(p.y)
 
 # %%
 module P046
+  struct Point
     x::Int
     y::Int
   end
