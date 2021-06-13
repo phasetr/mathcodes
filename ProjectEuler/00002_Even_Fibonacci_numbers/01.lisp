@@ -13,9 +13,47 @@
         (t :b))
   (mod 5 3)
   (mod 7 4))
-(defun solve (prev now sum limit)
+(defun solve1 (prev now sum limit)
   (let* ((a (+ prev now)))
     (cond ((> a limit) sum)
-          ((= (mod a 2) 0) (solve now a (+ sum a) limit))
-          (t (solve now a sum limit)))))
-(solve 0 1 0 4000000)
+          ((= (mod a 2) 0) (solve1 now a (+ sum a) limit))
+          (t (solve1 now a sum limit)))))
+(solve1 0 1 0 4000000)
+
+;;; https://takeokunn.xyz/blog/post/common-lisp-fibonacci
+;;; フィボナッチ数列
+(defun memo (fn)
+  (let ((table (make-hash-table :test 'equal)))
+    #'(lambda (&rest rest)
+        (multiple-value-bind (val found-p) (gethash rest table)
+          (if found-p
+              val
+              (setf (gethash rest table) (apply fn rest)))))))
+(defun memoize (fn-name)
+  (setf (symbol-function fn-name)
+        (memo (symbol-function fn-name))))
+(defmacro defun-memo (fn args &body body)
+  `(memoize (defun ,fn ,args . ,body)))
+(defun fib (n)
+  (if (<= n 1) 1
+      (+ (fib (- n 1)) (fib (- n 2)))))
+(defun-memo fib-memo (n)
+  (if (<= n 1) 1
+      (+ (fib-memo (- n 1)) (fib-memo (- n 2)))))
+
+;;; 時間計測テスト: 41 の時点で 6.7s
+(dolist (n '(10 20 30 40 41))
+  (time (fib n))
+  (time (fib-memo n)))
+
+(let ((i 0) (fibval 0) (fibs ())
+      (xs ())
+      (lastval 4000000))
+  (loop while (< fibval lastval)
+        do (progn
+             (setq fibval (fib-memo i)
+                        i (incf i))
+             (when (< fibval lastval)
+               (setq fibs (cons fibval fibs)))))
+  (setq xs (remove-if-not #'evenp fibs))
+  (list i fibval fibs xs (apply '+ xs)))
