@@ -1,0 +1,5 @@
+data/*
+!data/.gitkeep
+!data/*.dat
+!data/*.plt
+data/*.tmp.dat

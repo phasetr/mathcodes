@@ -1,0 +1,36 @@
+(load "./lib")
+"P.824"
+"D.23 平方剰余"
+(define (jacobi a n)
+  (define (j-core a n)
+    (let* ((a (/@ a n))
+           (fn (lambda (t k) (** -1 (/ t k))))
+           (sup-2nd (fn (- (* n n) 1) 8))
+           (qr-main (fn (* (- a 1) (- n 1)) 4)))
+      (cond ((= (abs a) 1) a)
+            ((even? a) (* sup-2nd (j-core (/ a 2) n)))
+            (else      (* qr-main (j-core n a))))))
+  (cond ((= a  1) 1)
+        ((= a -1) (** -1 (/ (- n 1) 2)))
+        (else (j-core a n))))
+(define (qr-list p)
+  (map (lambda (x) (jacobi x p)) (iota (- p 1))))
+(qr-list 23)
+
+"P.826"
+(define (g-core a p)
+  (let ((fn (lambda (x) (/ (* a x) p))))
+    (map (lambda (x) (- (fn x) (floor (fn x))))
+         (iota (/ (- p 1) 2)))))
+(g-core 5 23)
+(map adjust-of (g-core 5.0 23))
+
+(define (g-lemma a p)
+  (let ((fn (lambda (x) (/ (* a x) p))))
+    (** -1
+        (length (remove (lambda (x) (< x 1/2))
+                        (g-core a p))))))
+(g-lemma 5 23)
+(g-lemma 7 13)
+(g-lemma 13 7)
+(g-lemma 365 1847)
