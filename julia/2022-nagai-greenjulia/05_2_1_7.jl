@@ -3,6 +3,7 @@
 using IJulia
 using Plots
 using Random
+using Measures
 myseed = 4096
 Random.seed!(myseed)
 # （本のなかで）ここまで主に微分方程式を解いていた。
@@ -68,7 +69,7 @@ function giveandtake(oldboxes, seed=myseed)
     numpeople = length(oldboxes)
     A = rand(1:numpeople) # 渡す人
     B = rand(1:numpeople) # もらう人
-    while B==A # 渡す人ともらう人は別にしたい
+    while B == A # 渡す人ともらう人は別にしたい
         B = rand(1:numpeople)
     end
     if newboxes[A] > 0
@@ -87,14 +88,14 @@ function test2(seed=myseed)
     totalpeople = numpeople * numgroups
     totalboxes = zeros(Int64, numgroups, numpeople)
 
-    for i=1:numgroups
-        totalboxes[i,:] = make_initial(numpeople, numballs)
+    for i = 1:numgroups
+        totalboxes[i, :] = make_initial(numpeople, numballs)
     end
 
     hist = histogram(totalboxes[:],
         nbins=-0.5:1:numballs,
         label="initial",
-        ylims=(0,totalpeople*0.3))
+        ylims=(0, totalpeople * 0.3))
     # savefig("hist.png")
     display(hist)
 end
@@ -112,20 +113,20 @@ function test3(seed=myseed)
     totalpeople = numpeople * numgroups
     totalboxes = zeros(Int64, numgroups, numpeople)
 
-    for i=1:numgroups
-        totalboxes[i,:] = make_initial(numpeople, numballs)
+    for i = 1:numgroups
+        totalboxes[i, :] = make_initial(numpeople, numballs)
     end
 
     numtotal = 300
     for itrj = 1:numtotal
-        for i=1:numgroups
-            totalboxes[i,:] = giveandtake(totalboxes[i,:])
+        for i = 1:numgroups
+            totalboxes[i, :] = giveandtake(totalboxes[i, :])
         end
     end
     hist = histogram(totalboxes[:],
         nbins=-0.5:1:numballs,
         label="$numtotal",
-        ylims=(0,totalpeople*0.3))
+        ylims=(0, totalpeople * 0.3))
     # savefig("hist_300.png")
     display(hist)
 end
@@ -143,23 +144,23 @@ function test3()
     totalpeople = numpeople * numgroups
     totalboxes = zeros(Int64, numgroups, numpeople)
 
-    for i=1:numgroups
-        totalboxes[i,:] = make_initial(numpeople, numballs)
+    for i = 1:numgroups
+        totalboxes[i, :] = make_initial(numpeople, numballs)
     end
 
     numtotal = 300
     anim = Animation()
     @gif for itrj = 1:numtotal
         println("$itrj-th")
-        for i=1:numgroups
-            totalboxes[i,:] = giveandtake(totalboxes[i,:])
+        for i = 1:numgroups
+            totalboxes[i, :] = giveandtake(totalboxes[i, :])
         end
-        plt = histogram(totalboxes[:], nbins=-0.5:1:numballs, label="$itrj", ylims=(0,totalpeople*0.3))
+        plt = histogram(totalboxes[:], nbins=-0.5:1:numballs, label="$itrj", ylims=(0, totalpeople * 0.3))
         frame(anim, plt)
     end
-    gif(anim, "histplot.gif", fps=30)
-    # gif(anim, fps=50)
-    # display(gif)
+    # gif(anim, "histplot.gif", fps=30)
+    gif(anim, fps=50)
+    display(gif)
     # hist = histogram(totalboxes[:],nbins=-0.5:1:numballs,label="$numtotal",ylims=(0,totalpeople*0.3))
     # savefig("hist_300.png")
     # display(hist)
@@ -169,11 +170,129 @@ end
 
 test3()
 
+# ### TODO 5.1.5 ゲームの中の各人のチップ枚数
+# - 一回金持ちになった人はずっと金持ちでいられるか？
+# - 時系列で枚数をプロットしてみよう
+#
+# `numgroups=1`で確認する.
+
+function test4()
+    numpeople = 6
+    numballs = 30
+    # numgroups = 1
+    numtotal = 600
+    timedepboxes = zeros(Int64, numtotal, numpeople) # 時系列データを格納
+
+    timedepboxes[1, :] = make_initial(numpeople, numballs) # init dist
+    for itrj = 2:numtotal
+        timedepboxes[itrj, :] = giveandtake(timedepboxes[itrj-1, :])
+    end
+    for i = 1:numpeople
+        plot!(timedepboxes[:, i], label="$i")
+    end
+    # savefig("history.png")
+    # TODO Jupyterで画像を表示させたい
+    # display()
+end
+
+#
+
+test4()
+
+# ### 5.1.6 ボルツマン分布と等重律
+
+function make_states!(states, allstates, numpeople, numballs, i)
+    if i <= length(states)
+        for j = 0:numballs
+            states[i] = j
+            make_states!(states, allstates, numpeople - sum(states), numballs, i + 1)
+        end
+    else
+        if sum(states) == numballs
+            push!(allstates, copy(states))
+        end
+    end
+end
+
+#
+
+function test5()
+    numpeople = 4
+    numballs = 4
+    states = zeros(Int64, numpeople)
+    allstates = []
+    make_states!(states, allstates, numpeople, numballs, 1)
+    println(allstates)
+    println("Total number of states: ", length(allstates))
+end
+
+#
+
+test5()
+
+# #### P.160 `find_state()`
+
+function find_state_id(states, allstates)
+    id = findfirst(x -> x == states, allstates)
+    return id
+end
+
+#
+
+function test6()
+    numpeople = 4
+    numballs = 4
+    states = zeros(Int64, numpeople)
+    allstates = []
+    make_states!(states, allstates, numpeople, numballs, 1)
+    numtotalstates = length(allstates)
+    numstates = zeros(Int64, numtotalstates)
+    numgroups = 100
+
+    allstatesname = string.(allstates)
+    # totalpeople = numpeople * numgroups
+
+    totalboxes = zeros(Int64, numgroups, numpeople)
+    for i = 1:numgroups
+        totalboxes[i, :] = make_initial(numpeople, numballs)
+        id = find_state_id(totalboxes[i, :], allstates)
+        numstates[id] += 1
+    end
+
+    plot(numstates, xticks=(1:1:numtotalstates, allstatesname), xrotation=45, xtickfontsize=6, markershape=:circle, margin=15mm, label="initial", ylims=(0, maximum(numstates) + 1))
+    savefig("allstateinit.png")
+
+    numtotal = 300
+    anim = Animation()
+    for itrj = 1:numtotal
+        println("$itrj-th")
+        for i = 1:numgroups
+            totalboxes[i, :] = giveandtake(totalboxes[i, :])
+            id = find_state_id(totalboxes[i, :], allstates)
+            numstates[id] += 1
+        end
+        plt = plot(numstates
+        , xticks=(1:1:numtotalstates, allstatesname)
+        , xrotation=45
+        , xtickfontsize=6
+        , markershape=:circle
+        , margin=15mm
+        , label="$itrj-th"
+        , ylims=(0, maximum(numstates) + 1))
+        frame(anim, plt)
+    end
+    gif(anim, "allstates.gif", fps=30)
+end
+
+#
+
+test6()
+
 #
 
 using Random
-function initialize_spins(Lx,Ly,rng)
-    return rand(rng,[-1,1],Lx,Ly)
+function initialize_spins(Lx, Ly, rng)
+    return rand(rng, [-1, 1], Lx, Ly)
 end
 
 #
@@ -184,13 +303,13 @@ end
 
 #
 
-function measure_energy(Ck,J,h,Lx,Ly)
+function measure_energy(Ck, J, h, Lx, Ly)
     energy = 0
-    for iy=1:Ly
-        for ix=1:Lx
-            Si = calc_Si(ix,iy,Lx,Ly,Ck)
-            σi = Ck[ix,iy]
-            energy += -(J/2)*σi*Si - h*σi
+    for iy = 1:Ly
+        for ix = 1:Lx
+            Si = calc_Si(ix, iy, Lx, Ly, Ck)
+            σi = Ck[ix, iy]
+            energy += -(J / 2) * σi * Si - h * σi
         end
     end
     return energy
@@ -198,112 +317,112 @@ end
 
 #
 
-function calc_Si(ix,iy,Lx,Ly,Ck)
+function calc_Si(ix, iy, Lx, Ly, Ck)
     jx = ix + 1
     if jx > Lx
         jx -= Lx
     end
-    jy=iy
-    Si = Ck[jx,jy]
+    jy = iy
+    Si = Ck[jx, jy]
 
     jx = ix - 1
     if jx < 1
         jx += Lx
     end
     jy = iy
-    Si += Ck[jx,jy]
+    Si += Ck[jx, jy]
 
     jy = iy + 1
     if jy > Ly
         jy -= Ly
     end
     jx = ix
-    Si += Ck[jx,jy]
+    Si += Ck[jx, jy]
 
-    jy = iy-1
+    jy = iy - 1
     if jy < 1
         jy += Ly
     end
     jx = ix
-    Si += Ck[jx,jy]
+    Si += Ck[jx, jy]
     return Si
 end
 
 #
 
-function calc_ΔE(Ck,ix,iy,J,h,Lx,Ly)
-    Si = calc_Si(ix,iy,Lx,Ly,Ck)
-    return 2J*Ck[ix,iy]*Si + 2h*Ck[ix,iy]
+function calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
+    Si = calc_Si(ix, iy, Lx, Ly, Ck)
+    return 2J * Ck[ix, iy] * Si + 2h * Ck[ix, iy]
 end
 
 #
 
-function metropolis(σi,ΔE,T,rng)
-    is_accepted = ifelse(rand(rng) <= exp(-ΔE/T),true,false)
-    σ_new = ifelse(is_accepted,-σi,σi)
-    return σ_new,is_accepted
+function metropolis(σi, ΔE, T, rng)
+    is_accepted = ifelse(rand(rng) <= exp(-ΔE / T), true, false)
+    σ_new = ifelse(is_accepted, -σi, σi)
+    return σ_new, is_accepted
 end
 
 #
 
-function heatbath(σi,ΔE,T,rng)
-    α = ΔE*σi
-    σ_new = ifelse(rand(rng) <= 1/(1+exp(-α/T)),+1,-1)
-    is_accepted = ifelse(σ_new == σi,false,true)
-    return σ_new,is_accepted
+function heatbath(σi, ΔE, T, rng)
+    α = ΔE * σi
+    σ_new = ifelse(rand(rng) <= 1 / (1 + exp(-α / T)), +1, -1)
+    is_accepted = ifelse(σ_new == σi, false, true)
+    return σ_new, is_accepted
 end
 
 #
 
-function local_metropolis_update(Ck,ix,iy,T,J,h,Lx,Ly,rng)
-    ΔE = calc_ΔE(Ck,ix,iy,J,h,Lx,Ly)
-    σi = Ck[ix,iy]
-    return metropolis(σi,ΔE,T,rng)
+function local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
+    ΔE = calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
+    σi = Ck[ix, iy]
+    return metropolis(σi, ΔE, T, rng)
 end
 
 #
 
-function local_heatbath_update(Ck,ix,iy,T,J,h,Lx,Ly,rng)
-    ΔE = calc_ΔE(Ck,ix,iy,J,h,Lx,Ly)
-    σi = Ck[ix,iy]
-    return heatbath(σi,ΔE,T,rng)
+function local_heatbath_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
+    ΔE = calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
+    σi = Ck[ix, iy]
+    return heatbath(σi, ΔE, T, rng)
 end
 
 #
 
 using Random
 using Plots
-function montecarlo(num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
+function montecarlo(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     #Random.seed!(123)
     rng = MersenneTwister(123)
-    num_total = num_thermal+num_MC
+    num_total = num_thermal + num_MC
     accept_count = 0
     absmz_meanvalue = 0
     measure_count = 0
     mz_data = []
-    update(Ck,ix,iy) = local_metropolis_update(Ck,ix,iy,T,J,h,Lx,Ly,rng)
+    update(Ck, ix, iy) = local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
 
-    Ck = initialize_spins(Lx,Ly,rng)
+    Ck = initialize_spins(Lx, Ly, rng)
 
     for trj = 1:num_total
         for isweep = 1:Lx*Ly
-            ix = rand(rng,1:Lx)
-            iy = rand(rng,1:Ly)
-            Ck[ix,iy],is_accepted = update(Ck,ix,iy)
+            ix = rand(rng, 1:Lx)
+            iy = rand(rng, 1:Ly)
+            Ck[ix, iy], is_accepted = update(Ck, ix, iy)
 
-            accept_count += ifelse(is_accepted,1,0)
+            accept_count += ifelse(is_accepted, 1, 0)
         end
 
         if trj > num_thermal
             if trj % measure_interval == 0
                 measure_count += 1
-                mz = measure_Mz(Ck)/(Lx*Ly)
+                mz = measure_Mz(Ck) / (Lx * Ly)
                 absmz_meanvalue += abs(mz)
-                push!(mz_data,mz)
+                push!(mz_data, mz)
             end
         end
     end
-    return mz_data,accept_count/(num_total*Lx*Ly),absmz_meanvalue/measure_count
+    return mz_data, accept_count / (num_total * Lx * Ly), absmz_meanvalue / measure_count
 end
 
 #
@@ -314,12 +433,12 @@ function test()
     J = 1
     h = 0
     num_thermal = 200
-    num_MC = 10000-num_thermal
+    num_MC = 10000 - num_thermal
     measure_interval = 10
     T = 1
-    @time mz_data,acceptance_ratio,absmz = montecarlo(num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
-    println("average acceptance ratio ",acceptance_ratio)
-    histogram(mz_data,bin=-1:0.01:1)
+    @time mz_data, acceptance_ratio, absmz = montecarlo(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
+    println("average acceptance ratio ", acceptance_ratio)
+    histogram(mz_data, bin=-1:0.01:1)
     savefig("mz_data_$T.png")
     return
 end
@@ -330,17 +449,17 @@ test()
 
 #
 
-function montecarlo_fast(num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
+function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     #Random.seed!(123)
     rng = MersenneTwister(123)
-    num_total = num_thermal+num_MC
+    num_total = num_thermal + num_MC
     accept_count = 0
     absmz_meanvalue = 0
     measure_count = 0
     mz_data = []
-    update(Ck,ix,iy) = local_metropolis_update(Ck,ix,iy,T,J,h,Lx,Ly,rng)
+    update(Ck, ix, iy) = local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
 
-    Ck = initialize_spins(Lx,Ly,rng)
+    Ck = initialize_spins(Lx, Ly, rng)
 
     for trj = 1:num_total
         if trj > num_thermal && rand(rng) < 0.01
@@ -348,23 +467,23 @@ function montecarlo_fast(num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
             continue
         end
         for ix = 1:Lx
-            for iy=1:Ly
-                Ck[ix,iy],is_accepted = update(Ck,ix,iy)
+            for iy = 1:Ly
+                Ck[ix, iy], is_accepted = update(Ck, ix, iy)
 
-                accept_count += ifelse(is_accepted,1,0)
+                accept_count += ifelse(is_accepted, 1, 0)
             end
         end
 
         if trj > num_thermal
             if trj % measure_interval == 0
                 measure_count += 1
-                mz = measure_Mz(Ck)/(Lx*Ly)
+                mz = measure_Mz(Ck) / (Lx * Ly)
                 absmz_meanvalue += abs(mz)
-                push!(mz_data,mz)
+                push!(mz_data, mz)
             end
         end
     end
-    return mz_data,accept_count/(num_total*Lx*Ly),absmz_meanvalue/measure_count
+    return mz_data, accept_count / (num_total * Lx * Ly), absmz_meanvalue / measure_count
 end
 
 #
@@ -375,19 +494,19 @@ function test_tdep()
     J = 1
     h = 0
     num_thermal = 5000
-    num_MC = 50000-num_thermal
+    num_MC = 50000 - num_thermal
     measure_interval = 10
     mz_Tdep = []
     nT = 20
-    Ts = range(0.5,4.0,length = nT)
+    Ts = range(0.5, 4.0, length=nT)
     for T in Ts
-        @time mz_data,acceptance_ratio,absmz = montecarlo_fast(num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
-        push!(mz_Tdep,absmz)
+        @time mz_data, acceptance_ratio, absmz = montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
+        push!(mz_Tdep, absmz)
         println("$T $absmz")
-        histogram(mz_data,bin=-1:0.01:1)
+        histogram(mz_data, bin=-1:0.01:1)
         savefig("mz_data_$(T).png")
     end
-    plot(Ts,mz_Tdep)
+    plot(Ts, mz_Tdep)
     savefig("mz_tdep.png")
     return
 end
@@ -398,40 +517,40 @@ test_tdep()
 
 #
 
-function montecarlo_fast(filename,num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
+function montecarlo_fast(filename, num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     ENV["GKSwstype"] = "nul"
     #Random.seed!(123)
     rng = MersenneTwister(123)
-    num_total = num_thermal+num_MC
+    num_total = num_thermal + num_MC
     accept_count = 0
     absmz_meanvalue = 0
     measure_count = 0
     mz_data = []
-    update(Ck,ix,iy) = local_metropolis_update(Ck,ix,iy,T,J,h,Lx,Ly,rng)
+    update(Ck, ix, iy) = local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
 
-    Ck = initialize_spins(Lx,Ly,rng)
+    Ck = initialize_spins(Lx, Ly, rng)
 
     ising = @animate for trj = 1:num_total
         for ix = 1:Lx
-            for iy=1:Ly
-                Ck[ix,iy],is_accepted = update(Ck,ix,iy)
+            for iy = 1:Ly
+                Ck[ix, iy], is_accepted = update(Ck, ix, iy)
 
-                accept_count += ifelse(is_accepted,1,0)
+                accept_count += ifelse(is_accepted, 1, 0)
             end
         end
 
         if trj > num_thermal
             if trj % measure_interval == 0
                 measure_count += 1
-                mz = measure_Mz(Ck)/(Lx*Ly)
+                mz = measure_Mz(Ck) / (Lx * Ly)
                 absmz_meanvalue += abs(mz)
-                push!(mz_data,mz)
+                push!(mz_data, mz)
             end
         end
-        heatmap(1:Lx,1:Ly,Ck,aspect_ratio=:equal)
+        heatmap(1:Lx, 1:Ly, Ck, aspect_ratio=:equal)
     end every 100
-    gif(ising, "./"*filename, fps = 15)
-    return mz_data,accept_count/(num_total*Lx*Ly),absmz_meanvalue/measure_count
+    gif(ising, "./" * filename, fps=15)
+    return mz_data, accept_count / (num_total * Lx * Ly), absmz_meanvalue / measure_count
 end
 
 #
@@ -442,13 +561,13 @@ function test_anime()
     J = 1
     h = 0
     num_thermal = 5000
-    num_MC =20000-num_thermal
+    num_MC = 20000 - num_thermal
     measure_interval = 10
     T = 0.5
-    @time mz_data,acceptance_ratio,absmz = montecarlo_fast("ising_T$T.gif",num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
+    @time mz_data, acceptance_ratio, absmz = montecarlo_fast("ising_T$T.gif", num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
 
-    println("average acceptance ratio ",acceptance_ratio)
-    histogram(mz_data,bin=-1:0.01:1)
+    println("average acceptance ratio ", acceptance_ratio)
+    histogram(mz_data, bin=-1:0.01:1)
     savefig("mz_data_$(T).png")
     return
 end
@@ -459,19 +578,19 @@ test_anime()
 
 #
 
-function montecarlo_fast(num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
+function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     #Random.seed!(123)
     rng = MersenneTwister(123)
-    num_total = num_thermal+num_MC
+    num_total = num_thermal + num_MC
     accept_count = 0
     absmz_meanvalue = 0
     measure_count = 0
     mz_data = []
-    update(Ck,ix,iy) = local_metropolis_update(Ck,ix,iy,T,J,h,Lx,Ly,rng)
+    update(Ck, ix, iy) = local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
     E2_meanvalue = 0.0
     E_meanvalue = 0.0
 
-    Ck = initialize_spins(Lx,Ly,rng)
+    Ck = initialize_spins(Lx, Ly, rng)
 
     for trj = 1:num_total
         if trj > num_thermal && rand(rng) < 0.01
@@ -480,30 +599,30 @@ function montecarlo_fast(num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
         end
 
         for ix = 1:Lx
-            for iy=1:Ly
-                Ck[ix,iy],is_accepted = update(Ck,ix,iy)
+            for iy = 1:Ly
+                Ck[ix, iy], is_accepted = update(Ck, ix, iy)
 
-                accept_count += ifelse(is_accepted,1,0)
+                accept_count += ifelse(is_accepted, 1, 0)
             end
         end
 
         if trj > num_thermal
             if trj % measure_interval == 0
                 measure_count += 1
-                mz = measure_Mz(Ck)/(Lx*Ly)
+                mz = measure_Mz(Ck) / (Lx * Ly)
                 absmz_meanvalue += abs(mz)
-                push!(mz_data,mz)
+                push!(mz_data, mz)
 
-                E = measure_energy(Ck,J,h,Lx,Ly)
+                E = measure_energy(Ck, J, h, Lx, Ly)
                 E2_meanvalue += E^2
                 E_meanvalue += E
 
             end
         end
     end
-    Cv = (E2_meanvalue/measure_count - (E_meanvalue/measure_count)^2)/T^2
+    Cv = (E2_meanvalue / measure_count - (E_meanvalue / measure_count)^2) / T^2
 
-    return mz_data,accept_count/(num_total*Lx*Ly),absmz_meanvalue/measure_count,Cv
+    return mz_data, accept_count / (num_total * Lx * Ly), absmz_meanvalue / measure_count, Cv
 end
 
 #
@@ -514,28 +633,28 @@ function test_tdep()
     J = 1
     h = 0
     num_thermal = 20000
-    num_MC =100000-num_thermal
+    num_MC = 100000 - num_thermal
     measure_interval = 10
     mz_Tdep = []
     Cv_Tdep = []
 
     nT = 20
-    Ts = range(0.5,4.0,length= nT)
+    Ts = range(0.5, 4.0, length=nT)
     for T in Ts
-        @time mz_data,acceptance_ratio,absmz,Cv = montecarlo_fast(num_thermal,num_MC,measure_interval,T,J,h,Lx,Ly)
-        push!(mz_Tdep,absmz)
-        push!(Cv_Tdep,Cv)
+        @time mz_data, acceptance_ratio, absmz, Cv = montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
+        push!(mz_Tdep, absmz)
+        push!(Cv_Tdep, Cv)
         println("$T $absmz, $Cv")
-        histogram(mz_data,bin=-1:0.01:1)
+        histogram(mz_data, bin=-1:0.01:1)
         savefig("mz_data_L$(Lx)_T$(T).png")
 
         plot(mz_data)
         savefig("mz_trjdep_L$(Lx)_T$(T).png")
     end
-    plot(Ts,mz_Tdep)
+    plot(Ts, mz_Tdep)
     savefig("mz_tdep_L$(Lx).png")
 
-    plot(Ts,Cv_Tdep)
+    plot(Ts, Cv_Tdep)
     savefig("Cv_tdep_L$(Lx).png")
     return
 end
