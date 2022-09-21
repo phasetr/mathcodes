@@ -96,7 +96,7 @@ function test2(seed=myseed)
         nbins=-0.5:1:numballs,
         label="initial",
         ylims=(0, totalpeople * 0.3))
-    # savefig("hist.png")
+    savefig("P154_hist.png")
     display(hist)
 end
 
@@ -127,7 +127,7 @@ function test3(seed=myseed)
         nbins=-0.5:1:numballs,
         label="$numtotal",
         ylims=(0, totalpeople * 0.3))
-    # savefig("hist_300.png")
+    savefig("P155_hist_300.png")
     display(hist)
 end
 
@@ -158,12 +158,12 @@ function test3()
         plt = histogram(totalboxes[:], nbins=-0.5:1:numballs, label="$itrj", ylims=(0, totalpeople * 0.3))
         frame(anim, plt)
     end
-    # gif(anim, "histplot.gif", fps=30)
+    gif(anim, "P156_test3_histplot.gif", fps=30)
     gif(anim, fps=50)
     display(gif)
-    # hist = histogram(totalboxes[:],nbins=-0.5:1:numballs,label="$numtotal",ylims=(0,totalpeople*0.3))
-    # savefig("hist_300.png")
-    # display(hist)
+    hist = histogram(totalboxes[:],nbins=-0.5:1:numballs,label="$numtotal",ylims=(0,totalpeople*0.3))
+    savefig("P156_test3_hist_300.png")
+    display(hist)
 end
 
 #
@@ -190,7 +190,7 @@ function test4()
     for i = 1:numpeople
         plot!(timedepboxes[:, i], label="$i")
     end
-    # savefig("history.png")
+    savefig("P157_test4_history.png")
     # TODO Jupyterで画像を表示させたい
     # display()
 end
@@ -260,7 +260,7 @@ function test6()
     end
 
     plot(numstates, xticks=(1:1:numtotalstates, allstatesname), xrotation=45, xtickfontsize=6, markershape=:circle, margin=15mm, label="initial", ylims=(0, maximum(numstates) + 1))
-    savefig("allstateinit.png")
+    savefig("P160_allstateinit.png")
 
     numtotal = 300
     anim = Animation()
@@ -281,27 +281,100 @@ function test6()
         , ylims=(0, maximum(numstates) + 1))
         frame(anim, plt)
     end
-    gif(anim, "allstates.gif", fps=30)
+    gif(anim, "P160_allstates.gif", fps=30)
 end
 
 #
 
 test6()
 
+# ## 5.2 イジング模型のモンテカルロシミュレーション：可視化と動画作成
+# マルコフ連鎖モンテカルロ法（Markov chain Monte Carlo method, MCMC法）。
 #
+# 乱数生成。
+# 物理で出てくる乱数は高次元空間でいろいろやる。
+# 問題が一次元であっても、確率分布が正規分布ではない場合、直接乱数発生させるのが難しい。
+# こういう場合にMCMC。
+#
+# マルコフ連鎖モンテカルロ法：あるルールに従って次々に乱数を生成する。
+# このルールをうまく設定すると自分の扱いたい確率分布に従った乱数が生成できる。
+# マルコフ過程：確率過程、直前の値にだけ依存してそれより過去の状態には依存しない。
 
-using Random
+# ### 5.2.1 イジング模型
+# 古典スピン系（スピンは本来量子力学に起源がある対象）。
+# 磁性の議論で一番なカンタンなモデル。
+#
+# 物質が磁石になる場合、物質中の電子のスピンが一方向に揃う。
+# イジング模型は電子を忘れて、格子上（固体、原子の配置）にスピンが置いてあると思う。
+# スピンの値は$\pm 1$を取ることにして、設定したハミルトニアンに応じた相互作用をする。
+# ある温度を設定して、ある温度以下（転移温度）なら磁石になってほしい。
+# ある温度以上なら磁石にならない：こういう現象を再現したい。
+#
+# \begin{align}
+# H = - J \sum_{\langle ij \rangle} \sigma_i \sigma_j - h \sum_{i} \sigma_i
+# \end{align}
+
+# ##### 補足：ヒステリシスと順序交換
+# 極限の順序交換は一般に不可能。
+# \begin{align}
+# \lim_{h \to 0} \lim_{L \to \infty} \omega_{L,h}(M) \neq
+# \lim_{L \to \infty} \lim_{h \to 0} \omega_{L,h}(M)
+# \end{align}
+
+# #### $h=0$（外部磁場なし）、$J>0$の場合
+# 絶対零度の場合はシンプルにエネルギーだけ考えればよく、最低エネルギーを取るのは全てのスピンの向きが揃っている場合で、$H=-JN$、$N$の格子点の数。
+#
+# 有限温度の場合が問題。
+# 有限温度の場合は熱力学的に考える必要があって、特に自由エネルギーの最小化を考える。
+# ヘルムホルツの自由エネルギーは$F = U - TS$で、$U$は内部エネルギー、$T$が絶対温度、$S$がエントロピー。
+
+# 有限温度の系での物理量$\langle A \rangle$での期待値は
+# \begin{align}
+# \langle A \rangle =
+# \frac{1}{Z} \sum_C \exp \left[- \frac{H(C)}{k_BT} A(C) \right]
+# \end{align}
+# $H(C)$はハミルトニアンで、$C$がスピン配位。
+
+# $Z$は分配関数で
+# \begin{align}
+# Z = \sum_C \exp \left(- \frac{H(C)}{k_BT} \right)
+# \end{align}
+# $\exp (- \frac{H(C)}{k_BT})$はBoltzmann因子。
+
+# Boltzmann因子は指数関数：$H(C)$が最小の寄与が最も大きく、$H(C)$が少し大きくなると指数関数の値が一気に小さくなるので、和に寄与しない。
+# 物理量や分配関数の計算での「被積分関数」は高次元で局在している。
+# 局在をうまく引っ張れるのが重みつきのモンテカルロ法が有効な手段。
+#
+# この確率分布$\exp (- \frac{H(C)}{k_BT}) / Z$は正規分布ではない。
+
+# プログラムで計算しようと思うと、正規分布と一様分布くらい。あとは特殊関数をうまく使った分布はあるが、いまは$H$と$C$に依存する一般的にはよくわからない分布で、計算するのが難しい。
+# この状況下での乱数生成がいい感じにできるMCMC法がありがたい。
+#
+# イジング模型のMCMCではあるスピン配位$C_1$が与えられたとき、何らかの方法で配位を変更、$C_2$を出す。これを繰り返して配位の列をつくる。スピンの配位ごとに物理量$A(C_i)$を計算して、統計力学的な物理量の意味で足し上げると「物理量の期待値のサンプル」が得られる。
+
+# ### 5.2.2 2次元のイジング模型のMCMC法
+# 二次元のイジング模型のコードを書いて遊ぼう。
+# 模型としては$L_x \times L_y$の正方格子の二次元イジング模型を考える。
+# 格子点の総数は$N = L_x L_y$個。
+
+# $x,y$の両方向に周期境界条件を付ける。
+
+# ## 5.2.4 二次元イジング模型のコーディング
+# Julia 1.7で本書を再現するコード：
+# Julia 1.7以降の場合、乱数の仕様が1.6と変化したため、本書と同じ結果を再現するには乱数を指定する必要があります。そのため、本書では指定していない、```rng```という変数が引数に入っています。
+
+# #### P.168 スピンの初期化
 function initialize_spins(Lx, Ly, rng)
     return rand(rng, [-1, 1], Lx, Ly)
 end
 
-#
+# #### P.168 磁化の測定
 
 function measure_Mz(Ck)
     return sum(Ck)
 end
 
-#
+# #### P.169 エネルギーの測定
 
 function measure_energy(Ck, J, h, Lx, Ly)
     energy = 0
@@ -315,7 +388,7 @@ function measure_energy(Ck, J, h, Lx, Ly)
     return energy
 end
 
-#
+# #### P.168 $S_i$の測定
 
 function calc_Si(ix, iy, Lx, Ly, Ck)
     jx = ix + 1
@@ -348,14 +421,14 @@ function calc_Si(ix, iy, Lx, Ly, Ck)
     return Si
 end
 
-#
+# #### P.169 エネルギー差の計算
 
 function calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
     Si = calc_Si(ix, iy, Lx, Ly, Ck)
     return 2J * Ck[ix, iy] * Si + 2h * Ck[ix, iy]
 end
 
-#
+# #### P.169 メトロポリス法：スピンの更新
 
 function metropolis(σi, ΔE, T, rng)
     is_accepted = ifelse(rand(rng) <= exp(-ΔE / T), true, false)
@@ -363,7 +436,7 @@ function metropolis(σi, ΔE, T, rng)
     return σ_new, is_accepted
 end
 
-#
+# #### P.169 熱浴法
 
 function heatbath(σi, ΔE, T, rng)
     α = ΔE * σi
@@ -372,7 +445,7 @@ function heatbath(σi, ΔE, T, rng)
     return σ_new, is_accepted
 end
 
-#
+# #### P.169
 
 function local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
     ΔE = calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
@@ -380,7 +453,7 @@ function local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
     return metropolis(σi, ΔE, T, rng)
 end
 
-#
+# #### P.169
 
 function local_heatbath_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
     ΔE = calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
@@ -388,7 +461,7 @@ function local_heatbath_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
     return heatbath(σi, ΔE, T, rng)
 end
 
-#
+# #### P.170 モンテカルロ法
 
 using Random
 using Plots
@@ -425,7 +498,7 @@ function montecarlo(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     return mz_data, accept_count / (num_total * Lx * Ly), absmz_meanvalue / measure_count
 end
 
-#
+# #### P.171 モンテカルロ実行用コード
 
 function test()
     Lx = 100
@@ -443,11 +516,11 @@ function test()
     return
 end
 
-#
+# #### モンテカルロ実行
 
 test()
 
-#
+# #### P.172 高速化に向けて
 
 function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     #Random.seed!(123)
@@ -466,10 +539,10 @@ function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
             @. Ck *= -1
             continue
         end
+        # 高速化
         for ix = 1:Lx
             for iy = 1:Ly
                 Ck[ix, iy], is_accepted = update(Ck, ix, iy)
-
                 accept_count += ifelse(is_accepted, 1, 0)
             end
         end
@@ -486,7 +559,7 @@ function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     return mz_data, accept_count / (num_total * Lx * Ly), absmz_meanvalue / measure_count
 end
 
-#
+# #### P.173 高速化コードの実行
 
 function test_tdep()
     Lx = 100
@@ -504,18 +577,18 @@ function test_tdep()
         push!(mz_Tdep, absmz)
         println("$T $absmz")
         histogram(mz_data, bin=-1:0.01:1)
-        savefig("mz_data_$(T).png")
+        savefig("P173_mz_data_$(T).png")
     end
     plot(Ts, mz_Tdep)
-    savefig("mz_tdep.png")
+    savefig("P173_mz_tdep.png")
     return
 end
 
-#
+# #### 高速化の実行
 
 test_tdep()
 
-#
+# ### 5.2.5 二次元イジング模型のモンテカルロシミュレーションの可視化
 
 function montecarlo_fast(filename, num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     ENV["GKSwstype"] = "nul"
@@ -553,7 +626,7 @@ function montecarlo_fast(filename, num_thermal, num_MC, measure_interval, T, J, 
     return mz_data, accept_count / (num_total * Lx * Ly), absmz_meanvalue / measure_count
 end
 
-#
+# #### テスト実行用関数
 
 function test_anime()
     Lx = 100
@@ -568,15 +641,15 @@ function test_anime()
 
     println("average acceptance ratio ", acceptance_ratio)
     histogram(mz_data, bin=-1:0.01:1)
-    savefig("mz_data_$(T).png")
+    savefig("P174_mz_data_$(T).png")
     return
 end
 
-#
+# #### テスト実行
 
 test_anime()
 
-#
+# #### 比熱の計算
 
 function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     #Random.seed!(123)
@@ -616,7 +689,6 @@ function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
                 E = measure_energy(Ck, J, h, Lx, Ly)
                 E2_meanvalue += E^2
                 E_meanvalue += E
-
             end
         end
     end
@@ -625,7 +697,7 @@ function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     return mz_data, accept_count / (num_total * Lx * Ly), absmz_meanvalue / measure_count, Cv
 end
 
-#
+# #### 比熱の計算実行用
 
 function test_tdep()
     Lx = 96
@@ -646,16 +718,16 @@ function test_tdep()
         push!(Cv_Tdep, Cv)
         println("$T $absmz, $Cv")
         histogram(mz_data, bin=-1:0.01:1)
-        savefig("mz_data_L$(Lx)_T$(T).png")
+        savefig("P176_mz_data_L$(Lx)_T$(T).png")
 
         plot(mz_data)
-        savefig("mz_trjdep_L$(Lx)_T$(T).png")
+        savefig("P176_mz_trjdep_L$(Lx)_T$(T).png")
     end
     plot(Ts, mz_Tdep)
-    savefig("mz_tdep_L$(Lx).png")
+    savefig("P176_mz_tdep_L$(Lx).png")
 
     plot(Ts, Cv_Tdep)
-    savefig("Cv_tdep_L$(Lx).png")
+    savefig("P176_Cv_tdep_L$(Lx).png")
     return
 end
 
