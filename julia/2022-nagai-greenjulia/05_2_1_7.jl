@@ -1,4 +1,8 @@
 # # 5日目 統計力学
+# Julia 1.7で本書を再現するコード：
+# Julia 1.7以降の場合、乱数の仕様が1.6と変化したため、本書と同じ結果を再現するには乱数を指定する必要があります。
+# そのため、本書では指定していない、```rng```という変数が引数に入っています。
+
 # ## パッケージ読み込み・シード固定
 using IJulia
 using Plots
@@ -161,7 +165,7 @@ function test3()
     gif(anim, "P156_test3_histplot.gif", fps=30)
     gif(anim, fps=50)
     display(gif)
-    hist = histogram(totalboxes[:],nbins=-0.5:1:numballs,label="$numtotal",ylims=(0,totalpeople*0.3))
+    hist = histogram(totalboxes[:], nbins=-0.5:1:numballs, label="$numtotal", ylims=(0, totalpeople * 0.3))
     savefig("P156_test3_hist_300.png")
     display(hist)
 end
@@ -271,14 +275,7 @@ function test6()
             id = find_state_id(totalboxes[i, :], allstates)
             numstates[id] += 1
         end
-        plt = plot(numstates
-        , xticks=(1:1:numtotalstates, allstatesname)
-        , xrotation=45
-        , xtickfontsize=6
-        , markershape=:circle
-        , margin=15mm
-        , label="$itrj-th"
-        , ylims=(0, maximum(numstates) + 1))
+        plt = plot(numstates, xticks=(1:1:numtotalstates, allstatesname), xrotation=45, xtickfontsize=6, markershape=:circle, margin=15mm, label="$itrj-th", ylims=(0, maximum(numstates) + 1))
         frame(anim, plt)
     end
     gif(anim, "P160_allstates.gif", fps=30)
@@ -347,34 +344,71 @@ test6()
 #
 # この確率分布$\exp (- \frac{H(C)}{k_BT}) / Z$は正規分布ではない。
 
-# プログラムで計算しようと思うと、正規分布と一様分布くらい。あとは特殊関数をうまく使った分布はあるが、いまは$H$と$C$に依存する一般的にはよくわからない分布で、計算するのが難しい。
+# プログラムで計算しようと思うと、正規分布と一様分布くらい。
+# あとは特殊関数をうまく使った分布はあるが、いまは$H$と$C$に依存する一般的にはよくわからない分布で、計算するのが難しい。
 # この状況下での乱数生成がいい感じにできるMCMC法がありがたい。
 #
-# イジング模型のMCMCではあるスピン配位$C_1$が与えられたとき、何らかの方法で配位を変更、$C_2$を出す。これを繰り返して配位の列をつくる。スピンの配位ごとに物理量$A(C_i)$を計算して、統計力学的な物理量の意味で足し上げると「物理量の期待値のサンプル」が得られる。
+# イジング模型のMCMCではあるスピン配位$C_1$が与えられたとき、何らかの方法で配位を変更、$C_2$を出す。
+# これを繰り返して配位の列をつくる。
+# スピンの配位ごとに物理量$A(C_i)$を計算して、統計力学的な物理量の意味で足し上げると「物理量の期待値のサンプル」が得られる。
 
 # ### 5.2.2 2次元のイジング模型のMCMC法
 # 二次元のイジング模型のコードを書いて遊ぼう。
 # 模型としては$L_x \times L_y$の正方格子の二次元イジング模型を考える。
 # 格子点の総数は$N = L_x L_y$個。
-
+# 各格子点に$\sigma_i = \pm 1$の古典スピンが乗っている。
 # $x,y$の両方向に周期境界条件を付ける。
 
-# ## 5.2.4 二次元イジング模型のコーディング
-# Julia 1.7で本書を再現するコード：
-# Julia 1.7以降の場合、乱数の仕様が1.6と変化したため、本書と同じ結果を再現するには乱数を指定する必要があります。そのため、本書では指定していない、```rng```という変数が引数に入っています。
+# ある格子点のインデックスを$i = (i_x, i_y)$とすると、格子点$i$と相互作用する最近接格子点は次の四点。
+# \begin{align}
+# d_1 = (i_{x}+1,i_y), d_2 = (i_x-1,i_y), d_3 = (i_x,i_y+1), d_4 = (i_x,i_y-1).
+# \end{align}
+# これを使うとイジング模型のハミルトニアンは
+# \begin{align}
+# H(C) = - \frac{J}{2} \sum_i \sum_{l=1}^4 \sigma_i \sigma_{i+d_l} - h \sum_{i} \sigma_i
+# \end{align}
+# と書ける。
 
-# #### P.168 スピンの初期化
+# ここで$\sigma_i \sigma_j = \frac{1}{2} (\sigma_i \sigma_j + \sigma_j \sigma_i)$から来る係数$1/2$が出ている。
+# さらに$S_i = \sum_{l=1}^4 \sigma_{i+d_l}$とすれば
+# \begin{align}
+# H(C) = - \frac{J}{2} \sum_i \sum_{l=1}^4 \sigma_i S_i - h \sum_{i} \sigma_i
+# \end{align}
+# と書ける。
+# つまりある格子点$i$の最近接格子点に対するスピンの和$S_i$がわかれば全エネルギーが計算できる。
+
+# 参考：$S_i$を適当な「平均」で近似したのが平均場近似。
+
+# ### TODO MCMCの説明を書く
+
+# ### 5.2.3 マルコフ連鎖モンテカルロシミュレーションの流れ
+# スピン配位$C$の関数として磁化を$M(C) = \sum_{i} \frac{1}{N} \sigma_i$とする。
+#
+# 0. 目的：ある温度$T$での磁化の期待値$\langle |M| \rangle$とエネルギーの期待値を計算する。
+# 1. 初期化：$L_x \times L_y$の格子点を用意し、スピンの初期配位$C_0$を設定する。
+# 2. 配位$C_k$で一つの格子点$i$を適当に選ぶ。
+# 3. メトロポリス法か熱浴法で格子点$i$のスピンを変える。この配位を$C_{k+1}$とする。
+# 4. 熱化：上記2-3を$N_{\mathrm{thermal}}$回繰り返してスピン配位の初期配位依存性を消す。
+# 5. 期待値計算：2-3を$N_{\mathrm{MC}}$回繰り返す。適当な間隔（$N_M$回に一回）で$|M(C_k)|$と$E(C_k)$を計算して期待値を求める。
+
+# ### 5.2.4 二次元イジング模型のコーディング
+# まず、スピン配位だけから決まる初期化と測定の関数を作る。
+
+# #### P.168 スピン配位の初期化
+
 function initialize_spins(Lx, Ly, rng)
     return rand(rng, [-1, 1], Lx, Ly)
 end
 
 # #### P.168 磁化の測定
+# 単純に足し上げるだけ。
 
 function measure_Mz(Ck)
     return sum(Ck)
 end
 
-# #### P.169 エネルギーの測定
+# #### P.169 エネルギーの計算
+# `calc_Si`は最近接格子点のスピン和で、すぐ次で定義する。
 
 function measure_energy(Ck, J, h, Lx, Ly)
     energy = 0
@@ -389,6 +423,8 @@ function measure_energy(Ck, J, h, Lx, Ly)
 end
 
 # #### P.168 $S_i$の測定
+# $i=(i_x,i_y)$の周囲のスピンの値を計算する。
+# $C_k$がスピン配位で、格子点上のスピンの値を持っている。
 
 function calc_Si(ix, iy, Lx, Ly, Ck)
     jx = ix + 1
@@ -422,6 +458,7 @@ function calc_Si(ix, iy, Lx, Ly, Ck)
 end
 
 # #### P.169 エネルギー差の計算
+# ある格子点でのハミルトニアンの値を取っているイメージ。
 
 function calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
     Si = calc_Si(ix, iy, Lx, Ly, Ck)
@@ -429,6 +466,7 @@ function calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
 end
 
 # #### P.169 メトロポリス法：スピンの更新
+# 一様乱数を振って、その値が$e^{- \Delta E/ T}$より小さければスピンをフリップする。
 
 function metropolis(σi, ΔE, T, rng)
     is_accepted = ifelse(rand(rng) <= exp(-ΔE / T), true, false)
@@ -437,6 +475,8 @@ function metropolis(σi, ΔE, T, rng)
 end
 
 # #### P.169 熱浴法
+# 一様乱数を振って、その値が$1 / (1 + e^{-\alpha/T})$より小さいなら上向きスピン、それ以外は下向きスピンにする。
+# スピンがフリップしたかどうかを`is_accepted`に溜めている。
 
 function heatbath(σi, ΔE, T, rng)
     α = ΔE * σi
@@ -445,7 +485,8 @@ function heatbath(σi, ΔE, T, rng)
     return σ_new, is_accepted
 end
 
-# #### P.169
+# #### P.169 メトロポリス法でのある格子点でのスピンの更新関数
+# ボルツマン定数は$1$にした。
 
 function local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
     ΔE = calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
@@ -453,7 +494,7 @@ function local_metropolis_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
     return metropolis(σi, ΔE, T, rng)
 end
 
-# #### P.169
+# #### P.169 熱浴法でのある格子点でのスピンの更新関数
 
 function local_heatbath_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
     ΔE = calc_ΔE(Ck, ix, iy, J, h, Lx, Ly)
@@ -462,6 +503,9 @@ function local_heatbath_update(Ck, ix, iy, T, J, h, Lx, Ly, rng)
 end
 
 # #### P.170 モンテカルロ法
+# - `num_thermal`: 熱化の回数（測定しない区間）
+# - `measure_interval`: 測定のインターバル
+# - `num_MC`: 残りのモンテカルロステップ数
 
 using Random
 using Plots
@@ -477,8 +521,10 @@ function montecarlo(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
 
     Ck = initialize_spins(Lx, Ly, rng)
 
+    Nxy = Lx*Ly
+
     for trj = 1:num_total
-        for isweep = 1:Lx*Ly
+        for isweep = 1:Nxy
             ix = rand(rng, 1:Lx)
             iy = rand(rng, 1:Ly)
             Ck[ix, iy], is_accepted = update(Ck, ix, iy)
@@ -512,7 +558,7 @@ function test()
     @time mz_data, acceptance_ratio, absmz = montecarlo(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     println("average acceptance ratio ", acceptance_ratio)
     histogram(mz_data, bin=-1:0.01:1)
-    savefig("mz_data_$T.png")
+    savefig("P171_mz_data_$T.png")
     return
 end
 
