@@ -3,6 +3,10 @@
 # Julia 1.7以降の場合、乱数の仕様が1.6と変化したため、本書と同じ結果を再現するには乱数を指定する必要があります。
 # そのため、本書では指定していない、```rng```という変数が引数に入っています。
 
+# ## ログ出力の設定
+import Logging
+Logging.disable_logging(Logging.Info)
+
 # ## パッケージ読み込み・シード固定
 using IJulia
 using Plots
