@@ -4,16 +4,19 @@
 # そのため、本書では指定していない、```rng```という変数が引数に入っています。
 
 # ## ログ出力の設定
+
 import Logging
 Logging.disable_logging(Logging.Info)
 
 # ## パッケージ読み込み・シード固定
+
 using IJulia
 using Plots
 using Random
 using Measures
 myseed = 4096
 Random.seed!(myseed)
+
 # （本のなかで）ここまで主に微分方程式を解いていた。
 # 線型の方程式で、数値計算用にいろいろやっていると行列の話になってくる。
 #
@@ -61,6 +64,7 @@ Random.seed!(myseed)
 # ### 5.1.2 ルールの実装
 
 # #### ルール2
+
 function make_initial(numpeople, numchip, seed=myseed)
     # Random.seed!(seed)
     boxes = zeros(Int64, numpeople)
@@ -71,6 +75,7 @@ function make_initial(numpeople, numchip, seed=myseed)
 end
 
 # #### ルール4
+
 function giveandtake(oldboxes, seed=myseed)
     # Random.seed!(seed)
     newboxes = copy(oldboxes)
@@ -88,6 +93,7 @@ function giveandtake(oldboxes, seed=myseed)
 end
 
 # ### 5.1.3 初期分布のヒストグラム
+
 function test2(seed=myseed)
     # Random.seed!(seed)
     numpeople = 6
@@ -108,11 +114,12 @@ function test2(seed=myseed)
     display(hist)
 end
 
-#
+# テスト実行
 
 test2()
 
 # ### 5.1.4 ゲーム後のヒストグラム
+
 function test3(seed=myseed)
     # Random.seed!(seed)
     numpeople = 6
@@ -139,7 +146,7 @@ function test3(seed=myseed)
     display(hist)
 end
 
-#
+# テスト実行
 
 test3()
 
@@ -174,7 +181,7 @@ function test3()
     display(hist)
 end
 
-#
+# テスト実行
 
 test3()
 
@@ -203,7 +210,7 @@ function test4()
     # display()
 end
 
-#
+# テスト実行
 
 test4()
 
@@ -222,7 +229,7 @@ function make_states!(states, allstates, numpeople, numballs, i)
     end
 end
 
-#
+# テスト実行
 
 function test5()
     numpeople = 4
@@ -234,7 +241,7 @@ function test5()
     println("Total number of states: ", length(allstates))
 end
 
-#
+# テスト実行
 
 test5()
 
@@ -245,7 +252,7 @@ function find_state_id(states, allstates)
     return id
 end
 
-#
+# テスト実行用関数
 
 function test6()
     numpeople = 4
@@ -285,7 +292,7 @@ function test6()
     gif(anim, "P160_allstates.gif", fps=30)
 end
 
-#
+# テスト実行
 
 test6()
 
@@ -866,6 +873,6 @@ function test_tdep()
     return
 end
 
-#
+# テスト実行
 
 test_tdep()
