@@ -383,7 +383,92 @@ test6()
 
 # 参考：$S_i$を適当な「平均」で近似したのが平均場近似。
 
-# ### TODO MCMCの説明を書く
+# ### MCMCの説明
+# 二次元イジング模型をMCMCでのシミュレーションは、
+# あるスピン配位$C$の実現する確率が
+# \begin{align}
+# P(C) &= \frac{1}{Z} \exp \left[ - \frac{H(C)}{k_BT} \right], \\
+# Z &= \sum_{C} \exp \left[ -  \frac{H(C)}{k_BT} \right].
+# \end{align}
+# になるようなMCMC。
+# イジング模型は磁性を持つかが重要で、磁化$M(C) = \frac{1}{N} \sum_{i} \sigma_i$の絶対値の期待値
+# \begin{align}
+# \langle |M| \rangle = \sum_C P(C) |M(C)|
+# \end{align}
+# を計算する。
+# 磁化には温度依存性がある。
+
+# #### メトロポリス法
+# あるスピン配位$C$に対して確率$1/N$である格子点$i$の上のスピンをフリップさせた配位$C'$の遷移確率を考える。
+# この配位の採択率は
+# \begin{align}
+# A(C \to C') = \min \left( \frac{P(C')}{P(C)} \right)
+# \end{align}
+# で、これは
+# \begin{align}
+# A(C \to C') &= \min \left( 1, \exp -\left( - \frac{\Delta E(C,i)}{k_BT} \right) \right) \\
+# \Delta E(C) &= H(C') - H(C)
+# \end{align}
+# と書ける。
+# このエネルギー差は二次元イジング模型では
+# \begin{align}
+# \Delta E(C,i) = 2 J \sigma_i S_i + 2h \sigma_i
+# \end{align}
+# と書ける。
+# メトロポリス法では$\Delta E < 0$、つまりスピンをフリップしてエネルギーが下がった場合は確率1で採択され、
+# そうでない場合は$e^{- \Delta E / k_BT}$で採択される。
+
+# #### 熱浴法
+# 遷移確率は条件付き確率で計算する。
+# ランダムに選んだ格子点$i$でのスピンを$\sigma_i$、
+# それ以外の格子点でのスピンをまとめて$\sigma(C_{k,i/})$とし、
+# このときスピン配位を$C_k = (\sigma_i, \sigma(C_{k,i/}))$と書く。
+# 格子点$i$以外のスピン配位が$\sigma(C_{k,i/})$の時、
+# 格子点$i$でスピン$\sigma_i$が選ばれる条件付き確率を$P(\sigma_i | \sigma(C_{k,i/}))$とすれば、スピン配位$C_k=(\sigma_i, \sigma(C_{k,i/}))$から$C_k = (+1, \sigma(C_{k,i/}))$に遷移する確率は
+# \begin{align}
+# T_{C_k \to C'_k} = P(+1 | \sigma(C_{k,i/}))
+# \end{align}
+# と書ける。条件付き確率は
+# \begin{align}
+# P(+1 | \sigma(C_{k,i/})) = \frac{P(+1 | \sigma(C_{k,i/}))}{P(\sigma (C_{k,i/}))}
+# \end{align}
+# と書ける。
+# ここで$P(\sigma(C_{k,i/}))$はスピン配位$\sigma (C_{k,i/})$が実現する確率で、
+# 格子点$i$のスピンの向き以外は任意だから
+# \begin{align}
+# P(\sigma(C_{k,i/})) = \sum_{\sigma_i = \pm 1} P((\sigma_i, \sigma(C_{k,i/})))
+# \end{align}
+# と書ける。
+# 以上から
+# \begin{align}
+# P(+1 | \sigma(C_{k,i/}))
+# &=
+# \frac{P(+1, \sigma(C_{k,i/}))}{P(+1, \sigma(C_{k,i/})) + P(-1, \sigma(C_{k,i/}))}
+# \end{align}
+# で、
+# \begin{align}
+# \frac{P((-1, \sigma(C_{k,i/})))}{P(+1, \sigma(C_{k,i/}))}
+# =
+# \exp \left( - \frac{\Delta E(C, i; +1 \to -1)}{k_BT} \right).
+# \end{align}
+# ここで$\Delta E(C, i; +1 \to -1)$は格子点$i$のスピンが$+1$から$-1$になった時のエネルギー差で、
+# \begin{align}
+# \Delta E(C,i; +1 \to -1)
+# =
+# 2JS_i + 2h
+# =
+# \Delta E(C,i) \sigma_i
+# \end{align}
+# と書ける。これを使って遷移確率$T$の表式を静止すれば、
+# 熱浴法の格子点$i$のスピンが$+1$になる確率は
+# \begin{align}
+# T_{C_k \to C'_k}
+# =
+# \frac{1}{1 + \exp \left( - \frac{\Delta E(C,i; +1 \to -1)}{k_BT} \right)}
+# \end{align}
+# と書ける。
+# 一様乱数を振って、この値以下ならスピン$+1$に、
+# そうでなければ$-1$にすれば熱浴法によるMCMCが実行できる。
 
 # ### 5.2.3 マルコフ連鎖モンテカルロシミュレーションの流れ
 # スピン配位$C$の関数として磁化を$M(C) = \sum_{i} \frac{1}{N} \sigma_i$とする。
