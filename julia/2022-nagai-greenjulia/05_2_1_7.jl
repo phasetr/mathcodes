@@ -448,29 +448,24 @@ test6()
 # と書ける。
 # 以上から
 # \begin{align}
-# P(+1 | \sigma(C_{k,i/}))
-# &=
+# P(+1 | \sigma(C_{k,i/})) &=
 # \frac{P(+1, \sigma(C_{k,i/}))}{P(+1, \sigma(C_{k,i/})) + P(-1, \sigma(C_{k,i/}))}
 # \end{align}
 # で、
 # \begin{align}
-# \frac{P((-1, \sigma(C_{k,i/})))}{P(+1, \sigma(C_{k,i/}))}
-# =
+# \frac{P((-1, \sigma(C_{k,i/})))}{P(+1, \sigma(C_{k,i/}))} =
 # \exp \left( - \frac{\Delta E(C, i; +1 \to -1)}{k_BT} \right).
 # \end{align}
 # ここで$\Delta E(C, i; +1 \to -1)$は格子点$i$のスピンが$+1$から$-1$になった時のエネルギー差で、
 # \begin{align}
-# \Delta E(C,i; +1 \to -1)
-# =
-# 2JS_i + 2h
-# =
+# \Delta E(C,i; +1 \to -1) =
+# 2JS_i + 2h =
 # \Delta E(C,i) \sigma_i
 # \end{align}
 # と書ける。これを使って遷移確率$T$の表式を静止すれば、
 # 熱浴法の格子点$i$のスピンが$+1$になる確率は
 # \begin{align}
-# T_{C_k \to C'_k}
-# =
+# T_{C_k \to C'_k} =
 # \frac{1}{1 + \exp \left( - \frac{\Delta E(C,i; +1 \to -1)}{k_BT} \right)}
 # \end{align}
 # と書ける。
@@ -663,6 +658,7 @@ end
 test()
 
 # #### P.172 高速化に向けて
+# 乱数を振らずに格子点を順に更新している.
 
 function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     #Random.seed!(123)
@@ -702,6 +698,7 @@ function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
 end
 
 # #### P.173 高速化コードの実行
+# 単に高速化しただけではなく磁化の温度依存性を見るコードに変更.
 
 function test_tdep()
     Lx = 100
@@ -729,6 +726,12 @@ end
 # #### 高速化の実行
 
 test_tdep()
+
+# #### 参考：二次元イジング模型の熱力学的極限での転移温度
+#
+# \begin{align}
+# T_c = \frac{2}{\log (1 + \sqrt{2})} = 2.269.\
+# \end{align}
 
 # ### 5.2.5 二次元イジング模型のモンテカルロシミュレーションの可視化
 
@@ -779,7 +782,7 @@ function test_anime()
     num_MC = 20000 - num_thermal
     measure_interval = 10
     T = 0.5
-    @time mz_data, acceptance_ratio, absmz = montecarlo_fast("ising_T$T.gif", num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
+    @time mz_data, acceptance_ratio, absmz = montecarlo_fast("P174_ising_T$T.gif", num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
 
     println("average acceptance ratio ", acceptance_ratio)
     histogram(mz_data, bin=-1:0.01:1)
@@ -792,6 +795,7 @@ end
 test_anime()
 
 # #### 比熱の計算
+# 統計力学的な比熱とゆらぎの関係を使って比熱の温度依存を計算する.
 
 function montecarlo_fast(num_thermal, num_MC, measure_interval, T, J, h, Lx, Ly)
     #Random.seed!(123)
